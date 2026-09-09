@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import API from "../../services/api";
-import "./FestivalBanner.css";
+import "./DailyUsageBanner.css";
 
-const FestivalBanner = () => {
+const DailyUsageBanner = () => {
   const [banner, setBanner] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +13,7 @@ const FestivalBanner = () => {
         const rawData = response.data.data || response.data;
 
         if (Array.isArray(rawData) && rawData.length > 0) {
-          const firstBanner = rawData[0];
+          const firstBanner = rawData[1] || rawData[0];
 
           const bannerImg = firstBanner.imageURL?.startsWith("http")
             ? firstBanner.imageURL
@@ -37,9 +37,9 @@ const FestivalBanner = () => {
 
   if (loading) {
     return (
-      <section className="festival-banner-section">
-        <div className="festival-banner-container">
-          <p className="festival-loading-text">Loading festival banner...</p>
+      <section className="daily-usage-banner-section">
+        <div className="daily-usage-banner-container">
+          <p className="daily-usage-loading-text">Loading banner...</p>
         </div>
       </section>
     );
@@ -48,13 +48,13 @@ const FestivalBanner = () => {
   if (!banner) return null;
 
   return (
-    <section className="festival-banner-section">
-      <div className="festival-banner-container">
-        <a href={banner.redirectUrl} className="festival-banner-link">
+    <section className="daily-usage-banner-section">
+      <div className="daily-usage-banner-container">
+        <a href={banner.redirectUrl} className="daily-usage-banner-link">
           <img
             src={banner.image}
-            alt="Festival Banner"
-            className="festival-model-img"
+            alt="Daily Usage Banner"
+            className="daily-usage-model-img"
           />
         </a>
       </div>
@@ -62,4 +62,4 @@ const FestivalBanner = () => {
   );
 };
 
-export default FestivalBanner;
+export default DailyUsageBanner;
