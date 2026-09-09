@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import API from '../../services/api';
+// import API from '../../services/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 
@@ -7,6 +7,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import './FestivalBanner.css';
+import axiosInstance from '../../api/axiosInstance';
 
 const FestivalBanner = () => {
   const [banners, setBanners] = useState([]);
@@ -22,7 +23,7 @@ const FestivalBanner = () => {
   useEffect(() => {
     const fetchActiveBanners = async () => {
       try {
-        const response = await API.get('/banners/active');
+        const response = await axiosInstance.get('/banners/active');
         const rawData = response.data.data || response.data;
 
         if (rawData && rawData.length > 0) {
