@@ -1,11 +1,6 @@
-import { useState, useEffect } from 'react';
-
-
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import './FestivalBanner.css';
-import axiosInstance from '../../api/axiosInstance';
+import { useState, useEffect } from "react";
+import API from "../../services/api";
+import "./FestivalBanner.css";
 
 const FestivalBanner = () => {
   const [banner, setBanner] = useState(null);
@@ -14,7 +9,7 @@ const FestivalBanner = () => {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const response = await axiosInstance.get('/banners/active');
+        const response = await API.get("/banners/all");
         const rawData = response.data.data || response.data;
 
         if (Array.isArray(rawData) && rawData.length > 0) {
