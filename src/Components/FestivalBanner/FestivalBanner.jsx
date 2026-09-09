@@ -1,19 +1,6 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
 import API from "../../services/api";
 import "./FestivalBanner.css";
-=======
-import React, { useState, useEffect } from 'react';
-// import API from '../../services/api';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, Navigation } from 'swiper/modules';
-
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import './FestivalBanner.css';
-import axiosInstance from '../../api/axiosInstance';
->>>>>>> 908b454f0893d83c677a78c5d91aba360bce49fb
 
 const FestivalBanner = () => {
   const [banner, setBanner] = useState(null);
@@ -22,11 +9,7 @@ const FestivalBanner = () => {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-<<<<<<< HEAD
         const response = await API.get("/banners/all");
-=======
-        const response = await axiosInstance.get('/banners/active');
->>>>>>> 908b454f0893d83c677a78c5d91aba360bce49fb
         const rawData = response.data.data || response.data;
 
         if (Array.isArray(rawData) && rawData.length > 0) {
