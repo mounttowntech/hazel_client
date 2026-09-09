@@ -1,7 +1,19 @@
-function Home() {
-  return (
-    <div>Home</div>
-  )
-}
+import Hero from "../components/Hero/Hero";
+import ShopByCategory from "../components/ShopByCategory/ShopByCategory";
+import TrendingProducts from "../components/TrendingProducts/TrendingProducts";
+import FestivalBanner from "../components/FestivalBanner/FestivalBanner";
+import NewArrivals from "../components/NewArrivals/NewArrivals";
 
-export default Home
+const Home = () => {
+  return (
+    <>
+      <Hero />
+      <ShopByCategory />
+      <TrendingProducts />
+      <FestivalBanner />
+      <NewArrivals />
+    </>
+  );
+};
+
+export default Home;
