@@ -1,7 +1,8 @@
 import  { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCreative } from "swiper/modules";
-import API from "../../services/api";
+// import API from "../../services/api";
+import axiosInstance from "../../api/axiosInstance";
 
 import "swiper/css";
 import "./ShopByCategory.css";
@@ -12,7 +13,7 @@ const ShopByCategory = () => {
   useEffect(() => {
     const fetchSubCategories = async () => {
       try {
-        const response = await API.get("/subcategories/all");
+        const response = await axiosInstance.get("/subcategories/all");
         const rawData = response.data.data || response.data;
 
         if (rawData && rawData.length > 0) {

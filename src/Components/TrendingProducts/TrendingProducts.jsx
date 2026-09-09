@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./TrendingProducts.css";
-import api from "../../Services/api";
+// import api from "../../Services/api";
+import axiosInstance from "../../api/axiosInstance";
 
 const TrendingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -11,20 +12,20 @@ const TrendingProducts = () => {
   useEffect(() => {
     const fetchTrendingProducts = async () => {
       try {
-        const trendingResponse = await api.get("/trending-products/all");
+        const trendingResponse = await axiosInstance.get("/trending-products/all");
 
         const trendingData = trendingResponse.data?.data || [];
 
         const activeTrending = trendingData.find(
           (item) => item.isActive !== false,
         );
-
+console.log("Active Trending Data:", activeTrending);
         if (!activeTrending || !Array.isArray(activeTrending.products)) {
           setProducts([]);
           return;
         }
 
-        const productResponse = await api.get("/products/all");
+        const productResponse = await axiosInstance.get("/products/all");
 
         const productData = productResponse.data?.data || [];
 
@@ -116,7 +117,7 @@ const TrendingProducts = () => {
 
             if (image && image.startsWith("/")) {
               const baseURL =
-                api.defaults.baseURL
+                axiosInstance.defaults.baseURL
                   ?.replace(/\/api\/?$/, "")
                   .replace(/\/$/, "") || "";
 
