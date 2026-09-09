@@ -17,6 +17,7 @@ const Banner = () => {
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [imageError, setImageError] = useState("");
 
   const API_BASE_URL = "http://localhost:5004";
 
@@ -53,7 +54,19 @@ const Banner = () => {
     const file = e.target.files?.[0];
 
     if (!file) return;
+    const maxSize = 2 * 1024 * 1024;
 
+    if (file.size > maxSize) {
+      setImage(null);
+      setPreview("");
+
+      setMessage("Image is too large. Maximum allowed size is 2MB.");
+
+      e.target.value = "";
+      return;
+    }
+
+    setMessage("");
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
@@ -197,6 +210,10 @@ const Banner = () => {
                 accept="image/*"
                 onChange={handleImageChange}
               />
+
+              {imageError && (
+                <span className="banner-image-error">{imageError}</span>
+              )}
             </div>
           </div>
 

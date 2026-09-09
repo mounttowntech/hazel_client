@@ -237,6 +237,12 @@
   padding: 30px;
   color: #999;
 }
+.banner-image-error {
+  display: block;
+  margin-top: 6px;
+  color: #b3261e;
+  font-size: 13px;
+}
 
 @media (max-width: 768px) {
   .banner-form-grid {
