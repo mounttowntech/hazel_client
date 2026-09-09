@@ -1,6 +1,6 @@
 import{ useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Search, Heart, ShoppingBag, User, X } from "lucide-react";
+import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import logo from "../../assets/logo.png";
 import "./Navbar.css";
 
