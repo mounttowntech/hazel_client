@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { getCategories, deleteCategory } from "../../../../services/categoryService";
+import {
+  getCategories,
+  deleteCategory,
+} from "../../../../services/categoryService";
 import CategoryForm from "./CategoryForm";
 import "./categoryList.css";
 
@@ -30,7 +33,10 @@ const CategoryList = () => {
           if (Array.isArray(list)) {
             setCategories(list);
           } else {
-            console.warn("Unexpected response shape, setting empty list:", res.data);
+            console.warn(
+              "Unexpected response shape, setting empty list:",
+              res.data,
+            );
             setCategories([]);
           }
         }
@@ -38,7 +44,9 @@ const CategoryList = () => {
         console.error("Failed to fetch categories:", err);
         if (!ignore) {
           setError(
-            err?.response?.data?.message || err?.message || "Failed to load categories"
+            err?.response?.data?.message ||
+              err?.message ||
+              "Failed to load categories",
           );
           setCategories([]);
         }
@@ -113,9 +121,9 @@ const CategoryList = () => {
               <tr>
                 <th>S.No</th>
                 <th>Category</th>
-                <th>Slug</th>
+                {/* <th>Slug</th>
                 <th>Status</th>
-                <th>Order</th>
+                <th>Order</th> */}
                 <th>Actions</th>
               </tr>
             </thead>
@@ -146,8 +154,8 @@ const CategoryList = () => {
                         <span className="cat-name-text">{cat.name}</span>
                       </div>
                     </td>
-                    <td className="cat-slug">{cat.slug}</td>
-                    <td>
+                    {/* <td className="cat-slug">{cat.slug}</td> */}
+                    {/* <td>
                       <span
                         className={`cat-status-badge ${
                           cat.status === "active" ? "active" : "inactive"
@@ -155,11 +163,14 @@ const CategoryList = () => {
                       >
                         {cat.status}
                       </span>
-                    </td>
-                    <td>{cat.displayOrder}</td>
+                    </td> */}
+                    {/* <td>{cat.displayOrder}</td> */}
                     <td>
                       <div className="cat-actions">
-                        <button className="cat-icon-btn edit" onClick={() => handleEdit(cat)}>
+                        <button
+                          className="cat-icon-btn edit"
+                          onClick={() => handleEdit(cat)}
+                        >
                           Edit
                         </button>
                         <button

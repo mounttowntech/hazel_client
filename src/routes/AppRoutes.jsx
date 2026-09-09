@@ -14,52 +14,70 @@ import LengthList from "../pages/admin/catalog/product-length/LengthList";
 import ProductList from "../pages/admin/catalog/products/ProductList";
 import ProductVariantList from "../pages/admin/catalog/productVariant/ProductVariant";
 import SizeList from "../pages/admin/catalog/size/SizeList";
-import ColorList from "../pages/admin/catalog/color/Colorlist"
+import ColorList from "../pages/admin/catalog/color/Colorlist";
 import Shop from "../pages/Shop/Shop";
 
 import UserLayout from "../layouts/UserLayout";
 import Home from "../Pages/Home";
+import Payment from "../Pages/admin/payments/Payment";
+import Order from "../Pages/admin/orders/order";
+import Banner from "../Pages/admin/banners/Banner";
+import Profile from "../Pages/admin/profile/Profile";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-    <Routes>
-      {/* USER LAYOUT ROUTES */}
-      <Route element={<UserLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
-      </Route>
-      {/* =================================
+      <Routes>
+        {/* USER LAYOUT ROUTES */}
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+        </Route>
+        {/* =================================
           AUTH ROUTES
       ================================= */}
-      
-      <Route path="/admin/login" element={<Login />} />
-      <Route path="/verify-otp" element={<VerifyOTP />} />
 
-      {/* =================================
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/admin/myprofile" element={<Profile />} />
+
+        {/* =================================
           ADMIN ROUTES
       ================================= */}
-      <Route element={<AdminLayout />}>
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-        <Route path="/admin/catalog/categories" element={<CategoryList />} />
-        <Route path="/admin/catalog/subcategories" element={<SubCategoryList />} />
-        <Route path="/admin/catalog/brands" element={<BrandList />} />
-        <Route path="/admin/catalog/product-length" element={<LengthList />} />
-        {/* <Route path="/admin/catalog/neck-patterns" element={<NeckPatternList />} /> */}
-        <Route path="/admin/catalog/products" element={<ProductList />} />
-        <Route path="/admin/catalog/product-variants" element={<ProductVariantList />} />
-        <Route path="/admin/catalog/size" element={<SizeList />} />
-        <Route path="/admin/catalog/colors" element={<ColorList />} />
-        {/* add more admin routes here, all under this same AdminLayout wrapper */}
-      </Route>
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/catalog/categories" element={<CategoryList />} />
+          <Route
+            path="/admin/catalog/subcategories"
+            element={<SubCategoryList />}
+          />
+          <Route path="/admin/catalog/brands" element={<BrandList />} />
+          <Route
+            path="/admin/catalog/product-length"
+            element={<LengthList />}
+          />
+          {/* <Route path="/admin/catalog/neck-patterns" element={<NeckPatternList />} /> */}
+          <Route path="/admin/catalog/products" element={<ProductList />} />
+          <Route
+            path="/admin/catalog/product-variants"
+            element={<ProductVariantList />}
+          />
+          <Route path="/admin/catalog/size" element={<SizeList />} />
+          <Route path="/admin/catalog/colors" element={<ColorList />} />
 
-      {/* =================================
+          <Route path="/admin/payments" element={<Payment />} />
+          <Route path="/admin/orders" element={<Order />} />
+          <Route path="/admin/banners" element={<Banner />} />
+          {/* add more admin routes here, all under this same AdminLayout wrapper */}
+        </Route>
+
+        {/* =================================
           DEFAULT ROUTE
       ================================= */}
-      {/* 
+        {/* 
       <Route path="*" element={<Navigate to="/login" replace />} />
       */}
-    </Routes>
+      </Routes>
     </BrowserRouter>
   );
 };

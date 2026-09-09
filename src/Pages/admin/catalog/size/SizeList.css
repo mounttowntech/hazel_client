@@ -43,6 +43,10 @@
   font-family: var(--hz-sans);
 }
 
+.hz-sizes{
+  padding: 24px;
+}
+
 .hz-sizes *,
 .hz-sizes *::before,
 .hz-sizes *::after {
@@ -123,7 +127,7 @@
 
   border-color: var(--hz-border);
 
-  color: var(--hz-ink);
+  color:black;
 }
 
 .hz-btn--ghost:hover:not(:disabled) {
@@ -744,6 +748,7 @@
 
 .hz-footer {
   display: flex;
+  color : black !important;
 
   align-items: center;
 
@@ -755,22 +760,20 @@
 }
 
 .hz-range {
-  color: var(--hz-muted);
-
+color: black !important;
   font-size: 13px;
 }
 
 .hz-pager {
   display: flex;
-
+color: black !important;
   align-items: center;
 
   gap: 12px;
 }
 
 .hz-page-info {
-  color: var(--hz-muted);
-
+color: black !important;
   font-size: 13px;
 
   white-space: nowrap;
