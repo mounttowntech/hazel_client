@@ -4,7 +4,7 @@
   width: 100%;
   box-sizing: border-box;
   background-color: #5a1827;
-  padding: 20px 32px 191px 32px;
+  padding: 20px 32px 212px 32px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -15,7 +15,7 @@
   gap: 53px;
   position: absolute;
   left: 386px;
-  bottom: 4px;
+  bottom: 35px;
   z-index: 10;
 }
 

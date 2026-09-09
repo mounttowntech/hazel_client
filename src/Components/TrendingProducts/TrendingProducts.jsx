@@ -29,32 +29,23 @@ console.log("Active Trending Data:", activeTrending);
 
         const productData = productResponse.data?.data || [];
 
-        if (!Array.isArray(productData)) {
-          setProducts([]);
-          return;
-        }
-
         const productMap = new Map();
 
-        productData.forEach((product) => {
-          if (product?._id) {
-            productMap.set(String(product._id), product);
-          }
-        });
+        if (Array.isArray(productData)) {
+          productData.forEach((product) => {
+            if (product?._id) {
+              productMap.set(String(product._id), product);
+            }
+          });
+        }
 
         const formattedProducts = activeTrending.products
-          .filter((trendingItem) => {
-            const productId =
-              trendingItem?.product?._id || trendingItem?.product;
-
-            return productId && productMap.has(String(productId));
-          })
           .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
           .map((trendingItem) => {
             const productId =
               trendingItem?.product?._id || trendingItem?.product;
 
-            const product = productMap.get(String(productId));
+            const product = productMap.get(String(productId)) || {};
 
             const variant = Array.isArray(product?.variants)
               ? product.variants.find((item) => item?.isActive !== false) ||
@@ -134,9 +125,9 @@ console.log("Active Trending Data:", activeTrending);
             }
 
             return {
-              id: product._id,
+              id: product._id || productId,
 
-              name: product.name || "Product",
+              name: product.name || "Exclusive Item",
 
               currentPrice,
               originalPrice,
