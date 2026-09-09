@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import API from "../../services/api";
+// import API from "../../services/api";
+import axiosInstance from "../../api/axiosInstance";
 import "./DailyUsageBanner.css";
 
 const DailyUsageBanner = () => {
@@ -9,7 +10,7 @@ const DailyUsageBanner = () => {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const response = await API.get("/banners/all");
+        const response = await axiosInstance.get("/banners/all");
         const rawData = response.data.data || response.data;
 
         if (Array.isArray(rawData) && rawData.length > 0) {
