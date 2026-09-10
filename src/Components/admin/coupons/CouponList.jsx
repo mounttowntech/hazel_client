@@ -1,135 +1,139 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { getCoupons } from "../../../services/couponService";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
+
 import CommonModal from "../../common/CommonModal";
 import CouponForm from "./CouponForm";
-import "./Coupon.css";
+
+import {
+  getCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+} from "../../../services/couponService";
 
 import { getCategories } from "../../../services/categoryService";
-import { createCoupon, updateCoupon, deleteCoupon } from "../../../services/couponService";
 import { getProducts } from "../../../services/productService";
+
+import "./Coupon.css";
 
 const CouponList = () => {
   // ============================================================
-  // STATE
+  // STATES
   // ============================================================
 
   const [coupons, setCoupons] = useState([]);
-
-  const [loading, setLoading] = useState(false);
-
-  const [search, setSearch] = useState("");
-
-  const [statusFilter, setStatusFilter] = useState("");
-
-  const [isCouponModalOpen, setIsCouponModalOpen] =
-  useState(false);
-
-const [selectedCoupon, setSelectedCoupon] =
-  useState(null);
-
-const [savingCoupon, setSavingCoupon] =
-  useState(false);
-
-const [categories, setCategories] = useState([]);
-
+  const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
 
-// ============================================================
-  // FETCH CATEGORIES
-  // ============================================================
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchCategories = async () => {
-    try {
-      const response = await getCategories();
-console.log("Fetched categories:", response);
-      if (response?.data?.success) {
-
-        setCategories(response?.data?.data || []);
-      } else {
-        setCategories([]);
-        toast.error(
-          response?.data?.message ||
-            "Failed to fetch categories"
-        );
-      }
-    } catch (error) {
-      console.error("Fetch categories error:", error);
-      setCategories([]);
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to fetch categories"
-      );
-    }
-  };
-
-
-// ============================================================
-  // FETCH PRODUCTS
-  // ============================================================
-
-    const fetchProducts = async () => {
-    try {
-      const response = await getProducts();
-
-      if (response?.data?.success) {
-        setProducts(response?.data?.data || []);
-      } else {
-        setProducts([]);
-        toast.error(
-          response?.data?.message ||
-            "Failed to fetch products"
-        );
-      }
-    } catch (error) {
-      console.error("Fetch products error:", error);
-      setProducts([]);
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to fetch products"
-      );
-    }
-  };
-
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [savingCoupon, setSavingCoupon] = useState(false);
 
   // ============================================================
-  // FETCH COUPONS
-  // ============================================================
-
-  const fetchCoupons = async () => {
-    try {
-      setLoading(true);
-
-      const response = await getCoupons();
-console.log("Fetched coupons:", response);
-      if (response?.success) {
-        setCoupons(response?.data || []);
-      } else {
-        setCoupons([]);
-        toast.error(
-          response?.data?.message || "Failed to fetch coupons"
-        );
-      }
-    } catch (error) {
-      console.error("Fetch coupons error:", error);
-
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to fetch coupons"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ============================================================
-  // INITIAL LOAD
+  // INITIAL DATA LOAD
   // ============================================================
 
   useEffect(() => {
-    fetchCoupons();
-    fetchCategories();
-    fetchProducts();
+    let cancelled = false;
+
+    const loadInitialData = async () => {
+      try {
+        const [
+          couponResponse,
+          categoryResponse,
+          productResponse,
+        ] = await Promise.all([
+          getCoupons(),
+          getCategories(),
+          getProducts(),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        // --------------------------------------------------------
+        // COUPONS
+        // --------------------------------------------------------
+
+        if (couponResponse?.success) {
+          setCoupons(couponResponse?.data || []);
+        } else {
+          setCoupons([]);
+
+          toast.error(
+            couponResponse?.message ||
+              "Failed to fetch coupons"
+          );
+        }
+
+        // --------------------------------------------------------
+        // CATEGORIES
+        // --------------------------------------------------------
+
+        if (categoryResponse?.data?.success) {
+          setCategories(
+            categoryResponse?.data?.data || []
+          );
+        } else {
+          setCategories([]);
+
+          toast.error(
+            categoryResponse?.data?.message ||
+              "Failed to fetch categories"
+          );
+        }
+
+        // --------------------------------------------------------
+        // PRODUCTS
+        // --------------------------------------------------------
+
+        if (productResponse?.data?.success) {
+          setProducts(
+            productResponse?.data?.data || []
+          );
+        } else {
+          setProducts([]);
+
+          toast.error(
+            productResponse?.data?.message ||
+              "Failed to fetch products"
+          );
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        console.error(
+          "Initial coupon page load error:",
+          error
+        );
+
+        setCoupons([]);
+        setCategories([]);
+        setProducts([]);
+
+        toast.error(
+          error?.response?.data?.message ||
+            "Failed to load coupon data"
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ============================================================
@@ -137,29 +141,37 @@ console.log("Fetched coupons:", response);
   // ============================================================
 
   const getCouponStatus = (coupon) => {
-    if (!coupon.isActive) {
+    if (!coupon) {
+      return "Inactive";
+    }
+
+    if (coupon.isActive === false) {
       return "Inactive";
     }
 
     const now = new Date();
 
-    const startDate = coupon.startDate
-      ? new Date(coupon.startDate)
-      : null;
+    if (coupon.startDate) {
+      const startDate = new Date(coupon.startDate);
 
-    const endDate = coupon.endDate
-      ? new Date(coupon.endDate)
-      : null;
-
-    if (startDate && now < startDate) {
-      return "Scheduled";
+      if (now < startDate) {
+        return "Upcoming";
+      }
     }
 
-    if (endDate && now > endDate) {
-      return "Expired";
+    if (coupon.endDate) {
+      const endDate = new Date(coupon.endDate);
+
+      if (now > endDate) {
+        return "Expired";
+      }
     }
 
-    return "Active";
+    if (coupon.isActive === true) {
+      return "Active";
+    }
+
+    return "Inactive";
   };
 
   // ============================================================
@@ -167,64 +179,62 @@ console.log("Fetched coupons:", response);
   // ============================================================
 
   const filteredCoupons = useMemo(() => {
-    let result = [...coupons];
+    const searchValue = search.trim().toLowerCase();
 
-    // ----------------------------------------------------------
-    // SEARCH
-    // ----------------------------------------------------------
+    return coupons.filter((coupon) => {
+      // ----------------------------------------------------------
+      // SEARCH
+      // ----------------------------------------------------------
 
-    if (search.trim()) {
-      const searchValue = search
-        .trim()
-        .toLowerCase();
+      const matchesSearch =
+        !searchValue ||
+        coupon?.couponCode
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        coupon?.code
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        coupon?.couponName
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        coupon?.name
+          ?.toLowerCase()
+          .includes(searchValue);
 
-      result = result.filter((coupon) => {
-        const code =
-          coupon.code?.toLowerCase() || "";
+      // ----------------------------------------------------------
+      // STATUS
+      // ----------------------------------------------------------
 
-        const description =
-          coupon.description?.toLowerCase() || "";
+      const status = getCouponStatus(coupon);
 
-        return (
-          code.includes(searchValue) ||
-          description.includes(searchValue)
-        );
-      });
-    }
+      const matchesStatus =
+        !statusFilter ||
+        status === statusFilter;
 
-    // ----------------------------------------------------------
-    // STATUS
-    // ----------------------------------------------------------
-
-    if (statusFilter) {
-      result = result.filter((coupon) => {
-        return (
-          getCouponStatus(coupon) ===
-          statusFilter
-        );
-      });
-    }
-
-    return result;
+      return matchesSearch && matchesStatus;
+    });
   }, [coupons, search, statusFilter]);
 
   // ============================================================
   // FORMAT DATE
   // ============================================================
 
-  const formatDate = (date) => {
-    if (!date) {
+  const formatDate = (dateStr) => {
+    if (!dateStr) {
       return "-";
     }
 
-    return new Date(date).toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
+    const date = new Date(dateStr);
+
+    if (Number.isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   // ============================================================
@@ -232,125 +242,168 @@ console.log("Fetched coupons:", response);
   // ============================================================
 
   const formatDiscount = (coupon) => {
-    if (
-      coupon.discountType ===
-      "PERCENTAGE"
-    ) {
-      return `${coupon.discountValue}%`;
+    if (!coupon) {
+      return "-";
     }
 
-    return `₹${Number(
-      coupon.discountValue || 0
-    ).toLocaleString("en-IN")}`;
+    const discountType =
+      coupon.discountType ||
+      coupon.type ||
+      "";
+
+    const discountValue =
+      coupon.discountValue ??
+      coupon.value ??
+      0;
+
+    if (
+      discountType === "percentage" ||
+      discountType === "percent"
+    ) {
+      return `${discountValue}%`;
+    }
+
+    if (
+      discountType === "fixed" ||
+      discountType === "flat" ||
+      discountType === "amount"
+    ) {
+      return `₹${discountValue}`;
+    }
+
+    return discountValue;
   };
 
   // ============================================================
-  // MAX DISCOUNT
+  // GET MAX DISCOUNT
   // ============================================================
 
   const getMaxDiscount = (coupon) => {
-    if (
-      coupon.discountType !==
-      "PERCENTAGE"
-    ) {
-      return null;
+    if (!coupon) {
+      return "-";
     }
 
+    const maxDiscount =
+      coupon.maxDiscount ??
+      coupon.maximumDiscount ??
+      coupon.maxDiscountAmount;
+
     if (
-      coupon.maxDiscountAmount ===
-        null ||
-      coupon.maxDiscountAmount ===
-        undefined
+      maxDiscount === undefined ||
+      maxDiscount === null ||
+      maxDiscount === ""
     ) {
-      return null;
+      return "-";
     }
 
-    return `Max ₹${Number(
-      coupon.maxDiscountAmount
-    ).toLocaleString("en-IN")}`;
+    return `₹${maxDiscount}`;
   };
 
   // ============================================================
-  // USAGE
+  // GET USAGE TEXT
   // ============================================================
 
   const getUsageText = (coupon) => {
-    const used = Number(
-      coupon.usedCount || 0
-    );
-
-    if (
-      coupon.usageLimit === null ||
-      coupon.usageLimit === undefined
-    ) {
-      return `${used} / Unlimited`;
+    if (!coupon) {
+      return "-";
     }
 
-    return `${used} / ${coupon.usageLimit}`;
+    const usedCount =
+      coupon.usedCount ??
+      coupon.usageCount ??
+      coupon.used ??
+      0;
+
+    const usageLimit =
+      coupon.usageLimit ??
+      coupon.totalUsageLimit ??
+      coupon.maxUsage ??
+      null;
+
+    if (
+      usageLimit === null ||
+      usageLimit === undefined ||
+      usageLimit === ""
+    ) {
+      return `${usedCount}`;
+    }
+
+    return `${usedCount} / ${usageLimit}`;
   };
 
   // ============================================================
-  // APPLICABILITY
+  // GET APPLICABILITY
   // ============================================================
 
   const getApplicability = (coupon) => {
-    const categoryCount =
-      coupon.applicableCategories
-        ?.length || 0;
-
-    const productCount =
-      coupon.applicableProducts
-        ?.length || 0;
+    if (!coupon) {
+      return "-";
+    }
 
     if (
-      categoryCount === 0 &&
-      productCount === 0
+      coupon.applicableTo === "all" ||
+      coupon.applicableType === "all"
     ) {
       return "All Products";
     }
 
     if (
-      categoryCount > 0 &&
-      productCount > 0
+      coupon.applicableTo === "category" ||
+      coupon.applicableType === "category"
     ) {
-      return `${categoryCount} Categories, ${productCount} Products`;
+      return "Category";
     }
 
-    if (categoryCount > 0) {
-      return `${categoryCount} ${
-        categoryCount === 1
-          ? "Category"
-          : "Categories"
-      }`;
+    if (
+      coupon.applicableTo === "product" ||
+      coupon.applicableType === "product"
+    ) {
+      return "Product";
     }
 
-    return `${productCount} ${
-      productCount === 1
-        ? "Product"
-        : "Products"
-    }`;
+    if (coupon.categoryId) {
+      return "Category";
+    }
+
+    if (coupon.productId) {
+      return "Product";
+    }
+
+    if (
+      coupon.categoryIds?.length > 0
+    ) {
+      return "Category";
+    }
+
+    if (
+      coupon.productIds?.length > 0
+    ) {
+      return "Product";
+    }
+
+    return "All Products";
   };
 
   // ============================================================
-  // STATUS CLASS
+  // GET STATUS CLASS
   // ============================================================
 
   const getStatusClass = (status) => {
     switch (status) {
       case "Active":
-        return "coupon-status-active";
+        return "active";
 
       case "Inactive":
-        return "coupon-status-inactive";
+        return "inactive";
+
+      case "Upcoming":
+        return "upcoming";
 
       case "Expired":
-        return "coupon-status-expired";
-
-      case "Scheduled":
-        return "coupon-status-scheduled";
+        return "expired";
 
       default:
-        return "";
+        return "inactive";
     }
   };
 
@@ -367,113 +420,193 @@ console.log("Fetched coupons:", response);
   // ADD COUPON
   // ============================================================
 
-//   const handleAddCoupon = () => {
-//     // Navigate when your create page is ready.
-//     // Example:
-//     // navigate("/admin/coupons/create");
-
-//     toast("Coupon create page can be connected here.");
-//   };
+  const handleAddCoupon = () => {
+    setSelectedCoupon(null);
+    setIsCouponModalOpen(true);
+  };
 
   // ============================================================
-  // EDIT
+  // EDIT COUPON
   // ============================================================
 
-//   const handleEdit = (coupon) => {
-//     console.log("Edit coupon:", coupon);
-
-//     // Later:
-//     // navigate(`/admin/coupons/edit/${coupon._id}`);
-//   };
+  const handleEdit = (coupon) => {
+    setSelectedCoupon(coupon);
+    setIsCouponModalOpen(true);
+  };
 
   // ============================================================
-  // DELETE
+  // CLOSE MODAL
+  // ============================================================
+
+  const handleCloseModal = () => {
+    if (savingCoupon) {
+      return;
+    }
+
+    setIsCouponModalOpen(false);
+    setSelectedCoupon(null);
+  };
+
+  // ============================================================
+  // CREATE / UPDATE COUPON
+  // ============================================================
+
+  const handleCouponSubmit = async (formData) => {
+    try {
+      setSavingCoupon(true);
+
+      let response;
+
+      // ----------------------------------------------------------
+      // UPDATE
+      // ----------------------------------------------------------
+
+      if (selectedCoupon?._id) {
+        response = await updateCoupon(
+          selectedCoupon._id,
+          formData
+        );
+      }
+
+      // ----------------------------------------------------------
+      // CREATE
+      // ----------------------------------------------------------
+
+      else {
+        response = await createCoupon(formData);
+      }
+
+      if (response?.success) {
+        toast.success(
+          response?.message ||
+            (
+              selectedCoupon
+                ? "Coupon updated successfully"
+                : "Coupon created successfully"
+            )
+        );
+
+        setIsCouponModalOpen(false);
+        setSelectedCoupon(null);
+
+        // --------------------------------------------------------
+        // REFRESH COUPONS
+        // --------------------------------------------------------
+
+        try {
+          const couponResponse = await getCoupons();
+
+          if (couponResponse?.success) {
+            setCoupons(
+              couponResponse?.data || []
+            );
+          } else {
+            toast.error(
+              couponResponse?.message ||
+                "Failed to refresh coupons"
+            );
+          }
+        } catch (refreshError) {
+          console.error(
+            "Refresh coupons error:",
+            refreshError
+          );
+
+          toast.error(
+            "Coupon saved, but list refresh failed"
+          );
+        }
+      } else {
+        toast.error(
+          response?.message ||
+            (
+              selectedCoupon
+                ? "Failed to update coupon"
+                : "Failed to create coupon"
+            )
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Coupon save error:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to save coupon"
+      );
+    } finally {
+      setSavingCoupon(false);
+    }
+  };
+
+  // ============================================================
+  // DELETE COUPON
   // ============================================================
 
   const handleDelete = async (coupon) => {
-  try {
     if (!coupon?._id) {
       toast.error("Invalid coupon");
       return;
     }
 
+    const couponCode =
+      coupon.couponCode ||
+      coupon.code ||
+      coupon.couponName ||
+      coupon.name ||
+      "this coupon";
+
     const confirmed = window.confirm(
-      `Are you sure you want to delete coupon "${coupon.code}"?`
+      `Are you sure you want to delete "${couponCode}"?`
     );
 
     if (!confirmed) {
       return;
     }
 
-    const response = await deleteCoupon(coupon._id);
-
-    if (response?.success) {
-      toast.success(response.message || "Coupon deleted successfully");
-
-      // Refresh coupon list
-      await fetchCoupons();
-    } else {
-      toast.error(response?.message || "Failed to delete coupon");
-    }
-  } catch (error) {
-    console.error("Delete coupon error:", error);
-
-    toast.error(
-      error?.response?.data?.message ||
-        "Failed to delete coupon"
-    );
-  }
-};
-
-  const handleAddCoupon = () => {
-  setSelectedCoupon(null);
-  setIsCouponModalOpen(true);
-};
-
-const handleEdit = (coupon) => {
-  setSelectedCoupon(coupon);
-  setIsCouponModalOpen(true);
-};
-
-const handleCouponSubmit = async (formData) => {
-  try {
-    setSavingCoupon(true);
-
-    let response;
-
-    if (selectedCoupon) {
-      response = await updateCoupon(
-        selectedCoupon._id,
-        formData
+    try {
+      const response = await deleteCoupon(
+        coupon._id
       );
-    } else {
-      response = await createCoupon(
-        formData
+
+      if (response?.success) {
+        toast.success(
+          response?.message ||
+            "Coupon deleted successfully"
+        );
+
+        // --------------------------------------------------------
+        // REMOVE FROM CURRENT STATE
+        // --------------------------------------------------------
+
+        setCoupons((previousCoupons) =>
+          previousCoupons.filter(
+            (item) =>
+              item?._id !== coupon._id
+          )
+        );
+      } else {
+        toast.error(
+          response?.message ||
+            "Failed to delete coupon"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Delete coupon error:",
+        error
       );
-    }
 
-    if (response?.success) {
-      setIsCouponModalOpen(false);
-      setSelectedCoupon(null);
-
-      await fetchCoupons();
-    } else {
       toast.error(
-        response?.data?.message ||
-          "Failed to save coupon"
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to delete coupon"
       );
     }
-  } catch (error) {
-    console.error(error);
-
-    toast.error(
-      error?.response?.data?.message ||
-        "Failed to save coupon"
-    );
-  } finally {
-    setSavingCoupon(false);
-  }
-};
+  };
 
   // ============================================================
   // RENDER
@@ -482,22 +615,23 @@ const handleCouponSubmit = async (formData) => {
   return (
     <div className="coupon-page">
 
-      {/* ======================================================
-          PAGE HEADER
-      ====================================================== */}
+      {/* ========================================================
+          HEADER
+      ======================================================== */}
 
-      <div className="coupon-page-header">
+      <div className="coupon-header">
 
         <div>
-          <h1>Coupons</h1>
+          <h2>Coupons</h2>
 
           <p>
-            Create and manage discount coupons
+            Manage discount coupons and promotional offers
           </p>
         </div>
 
         <button
-          className="add-coupon-btn"
+          type="button"
+          className="coupon-add-btn"
           onClick={handleAddCoupon}
         >
           + Add Coupon
@@ -505,44 +639,35 @@ const handleCouponSubmit = async (formData) => {
 
       </div>
 
-      {/* ======================================================
-          MAIN CARD
-      ====================================================== */}
+      {/* ========================================================
+          FILTER SECTION
+      ======================================================== */}
 
-      <div className="coupon-card">
+      <div className="coupon-filter-section">
 
-        {/* ====================================================
-            FILTER BAR
-        ==================================================== */}
+        {/* SEARCH */}
 
-        <div className="coupon-filter-bar">
+        <div className="coupon-search-box">
 
-          {/* SEARCH */}
+          <input
+            type="text"
+            placeholder="Search coupon code or name..."
+            value={search}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
+          />
 
-          <div className="coupon-search">
+        </div>
 
-            <span className="coupon-search-icon">
-              ⌕
-            </span>
+        {/* STATUS FILTER */}
 
-            <input
-              type="text"
-              placeholder="Search by coupon code or description..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-            />
-
-          </div>
-
-          {/* STATUS */}
+        <div className="coupon-status-filter">
 
           <select
-            className="coupon-status-filter"
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value)
+            onChange={(event) =>
+              setStatusFilter(event.target.value)
             }
           >
             <option value="">
@@ -553,8 +678,8 @@ const handleCouponSubmit = async (formData) => {
               Active
             </option>
 
-            <option value="Scheduled">
-              Scheduled
+            <option value="Upcoming">
+              Upcoming
             </option>
 
             <option value="Expired">
@@ -566,24 +691,83 @@ const handleCouponSubmit = async (formData) => {
             </option>
           </select>
 
-          {/* CLEAR */}
-
-          {(search || statusFilter) && (
-            <button
-              className="coupon-clear-btn"
-              onClick={clearFilters}
-            >
-              Clear
-            </button>
-          )}
-
         </div>
 
-        {/* ====================================================
-            TABLE
-        ==================================================== */}
+        {/* CLEAR */}
 
-        <div className="coupon-table-wrapper">
+        {(search || statusFilter) && (
+          <button
+            type="button"
+            className="coupon-clear-btn"
+            onClick={clearFilters}
+          >
+            Clear
+          </button>
+        )}
+
+      </div>
+
+      {/* ========================================================
+          COUNT
+      ======================================================== */}
+
+      <div className="coupon-result-count">
+
+        Showing{" "}
+        <strong>
+          {filteredCoupons.length}
+        </strong>{" "}
+        of{" "}
+        <strong>
+          {coupons.length}
+        </strong>{" "}
+        coupons
+
+      </div>
+
+      {/* ========================================================
+          TABLE
+      ======================================================== */}
+
+      <div className="coupon-table-wrapper">
+
+        {loading ? (
+
+          <div className="coupon-loading">
+            Loading coupons...
+          </div>
+
+        ) : filteredCoupons.length === 0 ? (
+
+          <div className="coupon-empty">
+
+            <div className="coupon-empty-icon">
+              %
+            </div>
+
+            <h3>
+              No Coupons Found
+            </h3>
+
+            <p>
+              {search || statusFilter
+                ? "Try changing your search or filters."
+                : "Create your first coupon to get started."}
+            </p>
+
+            {!search && !statusFilter && (
+              <button
+                type="button"
+                className="coupon-add-btn"
+                onClick={handleAddCoupon}
+              >
+                + Add Coupon
+              </button>
+            )}
+
+          </div>
+
+        ) : (
 
           <table className="coupon-table">
 
@@ -591,23 +775,45 @@ const handleCouponSubmit = async (formData) => {
 
               <tr>
 
-                <th>S.NO</th>
+                <th>
+                  #
+                </th>
 
-                <th>COUPON</th>
+                <th>
+                  Coupon
+                </th>
 
-                <th>DISCOUNT</th>
+                <th>
+                  Discount
+                </th>
 
-                <th>MIN ORDER</th>
+                <th>
+                  Max Discount
+                </th>
 
-                <th>USAGE</th>
+                <th>
+                  Applicable To
+                </th>
 
-                <th>VALIDITY</th>
+                <th>
+                  Usage
+                </th>
 
-                <th>APPLICABLE</th>
+                <th>
+                  Start Date
+                </th>
 
-                <th>STATUS</th>
+                <th>
+                  End Date
+                </th>
 
-                <th>ACTIONS</th>
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
 
               </tr>
 
@@ -615,315 +821,182 @@ const handleCouponSubmit = async (formData) => {
 
             <tbody>
 
-              {/* ==================================================
-                  LOADING
-              ================================================== */}
+              {filteredCoupons.map(
+                (coupon, index) => {
 
-              {loading && (
-                <tr>
+                  const status =
+                    getCouponStatus(coupon);
 
-                  <td
-                    colSpan="9"
-                    className="coupon-loading"
-                  >
-                    Loading coupons...
-                  </td>
+                  const couponCode =
+                    coupon?.couponCode ||
+                    coupon?.code ||
+                    "-";
 
-                </tr>
-              )}
+                  const couponName =
+                    coupon?.couponName ||
+                    coupon?.name ||
+                    "-";
 
-              {/* ==================================================
-                  EMPTY
-              ================================================== */}
+                  return (
 
-              {!loading &&
-                filteredCoupons.length === 0 && (
-                  <tr>
-
-                    <td
-                      colSpan="9"
-                      className="coupon-empty"
+                    <tr
+                      key={
+                        coupon?._id ||
+                        couponCode ||
+                        index
+                      }
                     >
 
-                      <div className="coupon-empty-icon">
-                        %
-                      </div>
+                      {/* INDEX */}
 
-                      <h3>
-                        No coupons found
-                      </h3>
+                      <td>
+                        {index + 1}
+                      </td>
 
-                      <p>
-                        Try changing your search
-                        or filters.
-                      </p>
+                      {/* COUPON */}
 
-                    </td>
+                      <td>
 
-                  </tr>
-                )}
+                        <div className="coupon-code-cell">
 
-              {/* ==================================================
-                  DATA
-              ================================================== */}
+                          <strong>
+                            {couponCode}
+                          </strong>
 
-              {!loading &&
-                filteredCoupons.map(
-                  (coupon, index) => {
-
-                    const couponStatus =
-                      getCouponStatus(
-                        coupon
-                      );
-
-                    return (
-                      <tr
-                        key={coupon._id}
-                      >
-
-                        {/* S.NO */}
-
-                        <td>
-                          {index + 1}
-                        </td>
-
-                        {/* COUPON */}
-
-                        <td>
-
-                          <div className="coupon-code">
-                            {coupon.code}
-                          </div>
-
-                          {coupon.description && (
-                            <div className="coupon-description">
-                              {coupon.description}
-                            </div>
+                          {couponName !== "-" && (
+                            <span>
+                              {couponName}
+                            </span>
                           )}
 
-                        </td>
+                        </div>
 
-                        {/* DISCOUNT */}
+                      </td>
 
-                        <td>
+                      {/* DISCOUNT */}
 
-                          <div className="discount-main">
-                            {formatDiscount(
-                              coupon
-                            )}
-                          </div>
+                      <td>
+                        <strong>
+                          {formatDiscount(coupon)}
+                        </strong>
+                      </td>
 
-                          {getMaxDiscount(
-                            coupon
-                          ) && (
-                            <div className="discount-max">
-                              {getMaxDiscount(
-                                coupon
-                              )}
-                            </div>
-                          )}
+                      {/* MAX DISCOUNT */}
 
-                        </td>
+                      <td>
+                        {getMaxDiscount(coupon)}
+                      </td>
 
-                        {/* MIN ORDER */}
+                      {/* APPLICABILITY */}
 
-                        <td>
+                      <td>
+                        {getApplicability(coupon)}
+                      </td>
 
-                          <span className="money-value">
-                            ₹
-                            {Number(
-                              coupon.minimumOrderAmount ||
-                                0
-                            ).toLocaleString(
-                              "en-IN"
-                            )}
-                          </span>
+                      {/* USAGE */}
 
-                          {coupon.maximumOrderAmount !==
-                            null &&
-                            coupon.maximumOrderAmount !==
-                              undefined && (
-                              <div className="max-order">
-                                Max ₹
-                                {Number(
-                                  coupon.maximumOrderAmount
-                                ).toLocaleString(
-                                  "en-IN"
-                                )}
-                              </div>
-                            )}
+                      <td>
+                        {getUsageText(coupon)}
+                      </td>
 
-                        </td>
+                      {/* START DATE */}
 
-                        {/* USAGE */}
+                      <td>
+                        {formatDate(
+                          coupon?.startDate
+                        )}
+                      </td>
 
-                        <td>
+                      {/* END DATE */}
 
-                          <div className="usage-main">
-                            {getUsageText(
-                              coupon
-                            )}
-                          </div>
+                      <td>
+                        {formatDate(
+                          coupon?.endDate
+                        )}
+                      </td>
 
-                          <div className="per-user">
-                            {coupon.perUserLimit ||
-                              1}{" "}
-                            per user
-                          </div>
+                      {/* STATUS */}
 
-                        </td>
+                      <td>
 
-                        {/* VALIDITY */}
+                        <span
+                          className={`coupon-status ${getStatusClass(
+                            status
+                          )}`}
+                        >
+                          {status}
+                        </span>
 
-                        <td>
+                      </td>
 
-                          <div className="validity-date">
-                            {formatDate(
-                              coupon.startDate
-                            )}
-                          </div>
+                      {/* ACTIONS */}
 
-                          <div className="validity-separator">
-                            to
-                          </div>
+                      <td>
 
-                          <div className="validity-date">
-                            {formatDate(
-                              coupon.endDate
-                            )}
-                          </div>
+                        <div className="coupon-actions">
 
-                        </td>
-
-                        {/* APPLICABLE */}
-
-                        <td>
-
-                          <span className="applicable-text">
-                            {getApplicability(
-                              coupon
-                            )}
-                          </span>
-
-                        </td>
-
-                        {/* STATUS */}
-
-                        <td>
-
-                          <span
-                            className={`coupon-status ${getStatusClass(
-                              couponStatus
-                            )}`}
+                          <button
+                            type="button"
+                            className="coupon-edit-btn"
+                            onClick={() =>
+                              handleEdit(coupon)
+                            }
                           >
-                            {couponStatus}
-                          </span>
+                            Edit
+                          </button>
 
-                        </td>
+                          <button
+                            type="button"
+                            className="coupon-delete-btn"
+                            onClick={() =>
+                              handleDelete(coupon)
+                            }
+                          >
+                            Delete
+                          </button>
 
-                        {/* ACTIONS */}
+                        </div>
 
-                        <td>
+                      </td>
 
-                          <div className="coupon-actions">
+                    </tr>
 
-                            <button
-                              className="coupon-edit-btn"
-                              onClick={() =>
-                                handleEdit(
-                                  coupon
-                                )
-                              }
-                            >
-                              Edit
-                            </button>
-
-                            <button
-                              className="coupon-delete-btn"
-                              onClick={() =>
-                                handleDelete(
-                                  coupon
-                                )
-                              }
-                            >
-                              Delete
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-                    );
-                  }
-                )}
+                  );
+                }
+              )}
 
             </tbody>
 
           </table>
 
-        </div>
-
-        {/* ====================================================
-            FOOTER
-        ==================================================== */}
-
-        {!loading &&
-          filteredCoupons.length > 0 && (
-            <div className="coupon-footer">
-
-              <span>
-                1–{filteredCoupons.length} of{" "}
-                {filteredCoupons.length}
-              </span>
-
-              <div className="coupon-footer-pagination">
-
-                <button disabled>
-                  Previous
-                </button>
-
-                <span className="coupon-page-number">
-                  Page 1 of 1
-                </span>
-
-                <button disabled>
-                  Next
-                </button>
-
-              </div>
-
-            </div>
-          )}
+        )}
 
       </div>
 
-      <CommonModal
-  isOpen={isCouponModalOpen}
-  onClose={() => {
-    if (savingCoupon) return;
+      {/* ========================================================
+          COUPON MODAL
+      ======================================================== */}
 
-    setIsCouponModalOpen(false);
-    setSelectedCoupon(null);
-  }}
-  title={
-    selectedCoupon
-      ? "Edit Coupon"
-      : "Create Coupon"
-  }
->
-  <CouponForm
-    editingCoupon={selectedCoupon}
-    onSubmit={handleCouponSubmit}
-    onCancel={() => {
-      setIsCouponModalOpen(false);
-      setSelectedCoupon(null);
-    }}
-    loading={savingCoupon}
-    categories={categories}
-    products={products}
-  />
-</CommonModal>
+      <CommonModal
+        isOpen={isCouponModalOpen}
+        onClose={handleCloseModal}
+        title={
+          selectedCoupon
+            ? "Edit Coupon"
+            : "Add Coupon"
+        }
+      >
+
+        <CouponForm
+          coupon={selectedCoupon}
+          categories={categories}
+          products={products}
+          onSubmit={handleCouponSubmit}
+          onCancel={handleCloseModal}
+          loading={savingCoupon}
+        />
+
+      </CommonModal>
 
     </div>
   );
