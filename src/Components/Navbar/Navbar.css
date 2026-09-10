@@ -142,6 +142,235 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
+/* nav dropdown css */
+/* =========================================================
+   USER ACCOUNT
+========================================================= */
+
+.navbar-user-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-user-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: #edc484;
+}
+
+.navbar-user-button .nav-icon {
+  color: #edc484;
+  cursor: pointer;
+}
+
+.user-chevron {
+  width: 14px;
+  height: 14px;
+  color: #edc484;
+  transition: transform 0.25s ease;
+}
+
+.user-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   USER DROPDOWN
+========================================================= */
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  width: 270px;
+
+  background-color: #5A1827;
+  border: 1px solid rgba(237, 196, 132, 0.45);
+  border-radius: 4px;
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.25),
+    0 4px 12px rgba(90, 24, 39, 0.25);
+
+  overflow: hidden;
+  z-index: 9999;
+
+  font-family: 'Playfair Display', serif;
+
+  animation: userDropdownAnimation 0.2s ease;
+}
+
+@keyframes userDropdownAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   USER HEADER
+========================================================= */
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 17px;
+}
+
+.user-avatar {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+
+  border-radius: 50%;
+
+  background-color: #edc484;
+  color: #5A1827;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 600;
+
+  border: 1px solid rgba(237, 196, 132, 0.8);
+}
+
+.user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.user-name {
+  margin: 0 0 4px;
+
+  color: #edc484;
+
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  margin: 0;
+
+  color: rgba(237, 196, 132, 0.72);
+
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.user-dropdown-divider {
+  height: 1px;
+
+  background-color: rgba(237, 196, 132, 0.25);
+
+  margin: 0 15px;
+}
+
+
+/* =========================================================
+   DROPDOWN ITEMS
+========================================================= */
+
+.user-dropdown-item {
+  width: 100%;
+
+  border: none;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 17px;
+
+  cursor: pointer;
+
+  color: #edc484;
+
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+
+  text-align: left;
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    padding-left 0.25s ease;
+}
+
+.user-dropdown-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.user-dropdown-item:hover {
+  background-color: rgba(237, 196, 132, 0.12);
+  color: #ffffff;
+  padding-left: 21px;
+}
+
+.user-dropdown-item:hover svg {
+  color: #edc484;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.logout-item {
+  color: #edc484;
+}
+
+.logout-item:hover {
+  background-color: rgba(237, 196, 132, 0.15);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   OPTIONAL: FUTURE DROPDOWN ITEMS
+========================================================= */
+
+.user-dropdown-item + .user-dropdown-item {
+  border-top: 1px solid rgba(237, 196, 132, 0.08);
+}
+
 @media screen and (max-width: 1024px) {
   .navbar {
     padding: 1rem 2rem;

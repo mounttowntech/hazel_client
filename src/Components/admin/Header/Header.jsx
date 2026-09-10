@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Bell, ChevronDown } from "lucide-react";
 import "./Header.css";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../../../Services/authService";
 
 const Header = ({
   adminName = "Admin",
@@ -25,11 +26,9 @@ const Header = ({
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("hazelToken");
-    localStorage.removeItem("hazelUser");
-
+    logout();
     navigate("/login");
-  };
+  }
 
   return (
     <header className="hz-header">

@@ -301,7 +301,8 @@
 
 .country-code {
   padding: 0 15px;
-  color: var(--hazel-dark);
+  /* color: var(--hazel-dark); */
+  color: #ffffff;
   font-weight: 600;
   border-right: 1px solid #F3D9B4;
 }
@@ -314,6 +315,7 @@
   padding: 0 15px;
   font-size: 14px;
   background-color: #780524;
+  color: #ffffff;
 }
 
 /* ============================================================

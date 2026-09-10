@@ -1,7 +1,7 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 
-import Login from "../pages/admin/auth/Login";
-import VerifyOTP from "../pages/admin/auth/VerifyOTP";
+import Login from "../Pages/auth/Login";
+import VerifyOTP from "../Pages/auth/VerifyOTP";
 
 import AdminLayout from "../components/admin/Layout/AdminLayout";
 
@@ -16,6 +16,7 @@ import ProductVariantList from "../pages/admin/catalog/productVariant/ProductVar
 import SizeList from "../pages/admin/catalog/size/SizeList";
 import ColorList from "../pages/admin/catalog/color/Colorlist";
 import Shop from "../pages/Shop/Shop";
+import Productpreview from "../pages/Product/productpreview/Productpreview";
 
 import UserLayout from "../layouts/UserLayout";
 import Home from "../Pages/Home";
@@ -23,19 +24,26 @@ import Payment from "../Pages/admin/payments/Payment";
 import Order from "../Pages/admin/orders/order";
 import Banner from "../Pages/admin/banners/Banner";
 import Profile from "../Pages/admin/profile/Profile";
+import CouponList from "../Components/admin/coupons/CouponList";
+
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* USER LAYOUT ROUTES */}
-        <Route element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-        </Route>
-        {/* =================================
+    <Routes>
+      {/* USER LAYOUT ROUTES */}
+      <Route element={<UserLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/product" element={<Productpreview />} />
+
+      </Route>
+      {/* =================================
           AUTH ROUTES
       ================================= */}
+      
+      <Route path="/login" element={<Login />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
 
         <Route path="/admin/login" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -44,32 +52,25 @@ const AppRoutes = () => {
         {/* =================================
           ADMIN ROUTES
       ================================= */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/catalog/categories" element={<CategoryList />} />
-          <Route
-            path="/admin/catalog/subcategories"
-            element={<SubCategoryList />}
-          />
-          <Route path="/admin/catalog/brands" element={<BrandList />} />
-          <Route
-            path="/admin/catalog/product-length"
-            element={<LengthList />}
-          />
-          {/* <Route path="/admin/catalog/neck-patterns" element={<NeckPatternList />} /> */}
-          <Route path="/admin/catalog/products" element={<ProductList />} />
-          <Route
-            path="/admin/catalog/product-variants"
-            element={<ProductVariantList />}
-          />
-          <Route path="/admin/catalog/size" element={<SizeList />} />
-          <Route path="/admin/catalog/colors" element={<ColorList />} />
+      <Route element={<AdminLayout />}>
+        <Route path="/admin/dashboard" element={<Dashboard />} />
+        <Route path="/admin/catalog/categories" element={<CategoryList />} />
+        <Route path="/admin/catalog/subcategories" element={<SubCategoryList />} />
+        <Route path="/admin/catalog/brands" element={<BrandList />} />
+        <Route path="/admin/catalog/product-length" element={<LengthList />} />
+        {/* <Route path="/admin/catalog/neck-patterns" element={<NeckPatternList />} /> */}
+        <Route path="/admin/catalog/products" element={<ProductList />} />
+        <Route path="/admin/catalog/product-variants" element={<ProductVariantList />} />
+        <Route path="/admin/catalog/size" element={<SizeList />} />
+        <Route path="/admin/catalog/colors" element={<ColorList />} />
 
-          <Route path="/admin/payments" element={<Payment />} />
+        {/* add more admin routes here, all under this same AdminLayout wrapper */}
+        <Route path="/admin/coupons" element={<CouponList />} />
+        <Route path="/admin/payments" element={<Payment />} />
           <Route path="/admin/orders" element={<Order />} />
           <Route path="/admin/banners" element={<Banner />} />
-          {/* add more admin routes here, all under this same AdminLayout wrapper */}
-        </Route>
+      </Route>
+
 
         {/* =================================
           DEFAULT ROUTE
