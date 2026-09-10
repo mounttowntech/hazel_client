@@ -259,7 +259,7 @@ const NewArrivals = () => {
           </div>
 
           <button className="shop-now-btn" type="button">
-            SHOP NOW
+            SHOP NOW.
           </button>
         </div>
       </div>
