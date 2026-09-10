@@ -1,7 +1,7 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 
-import Login from "../pages/admin/auth/Login";
-import VerifyOTP from "../pages/admin/auth/VerifyOTP";
+import Login from "../Pages/auth/Login";
+import VerifyOTP from "../Pages/auth/VerifyOTP";
 
 import AdminLayout from "../components/admin/Layout/AdminLayout";
 
@@ -19,6 +19,8 @@ import Shop from "../pages/Shop/Shop";
 
 import UserLayout from "../layouts/UserLayout";
 import Home from "../Pages/Home";
+import CouponList from "../Components/admin/coupons/CouponList";
+
 
 const AppRoutes = () => {
   return (
@@ -33,7 +35,7 @@ const AppRoutes = () => {
           AUTH ROUTES
       ================================= */}
       
-      <Route path="/admin/login" element={<Login />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/verify-otp" element={<VerifyOTP />} />
 
       {/* =================================
@@ -51,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/admin/catalog/size" element={<SizeList />} />
         <Route path="/admin/catalog/colors" element={<ColorList />} />
         {/* add more admin routes here, all under this same AdminLayout wrapper */}
+        <Route path="/admin/coupons" element={<CouponList />} />
       </Route>
 
       {/* =================================

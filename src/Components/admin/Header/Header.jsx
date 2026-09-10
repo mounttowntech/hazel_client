@@ -22,7 +22,7 @@ const Header = ({ adminName = "Admin", adminRole = "Super Admin", avatarUrl, not
 
   const handleLogout = () => {
     logout();
-    navigate("/admin/login");
+    navigate("/login");
   }
 
   return (
