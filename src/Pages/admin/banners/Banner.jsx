@@ -1,23 +1,16 @@
 import { useEffect, useState } from "react";
-import {
-  getBanners,
-  createBanner,
-  updateBanner,
-  deleteBanner,
-} from "../../../Services/bannerService";
+import { getBanners, deleteBanner } from "../../../Services/bannerService";
 
+import BannerForm from "./BannerForm";
 import "./Banner.css";
 
 const Banner = () => {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [bannerType, setBannerType] = useState("");
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [editId, setEditId] = useState(null);
+  const [editingBanner, setEditingBanner] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [imageError, setImageError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const API_BASE_URL = "http://localhost:5004";
 
@@ -33,6 +26,7 @@ const Banner = () => {
       }
     } catch (error) {
       console.error(error);
+
       setError(error.response?.data?.message || "Failed to fetch banners");
     } finally {
       setLoading(false);
@@ -43,86 +37,16 @@ const Banner = () => {
     fetchBanners();
   }, []);
 
-  const resetForm = () => {
-    setBannerType("");
-    setImage(null);
-    setPreview("");
-    setEditId(null);
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-    const maxSize = 2 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      setImage(null);
-      setPreview("");
-
-      setMessage("Image is too large. Maximum allowed size is 2MB.");
-
-      e.target.value = "";
-      return;
-    }
-
-    setMessage("");
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleAdd = () => {
+    setEditingBanner(null);
+    setShowForm(true);
     setMessage("");
     setError("");
-
-    if (!bannerType) {
-      setError("Please select banner type");
-      return;
-    }
-
-    if (!editId && !image) {
-      setError("Please select a banner image");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-
-      formData.append("bannerType", bannerType);
-
-      if (image) {
-        formData.append("image", image);
-      }
-
-      let response;
-
-      if (editId) {
-        response = await updateBanner(editId, formData);
-      } else {
-        response = await createBanner(formData);
-      }
-
-      if (response.data.success) {
-        setMessage(response.data.message);
-        resetForm();
-        fetchBanners();
-      }
-    } catch (error) {
-      console.error(error);
-
-      setError(error.response?.data?.message || "Failed to save banner");
-    }
   };
 
   const handleEdit = (banner) => {
-    setEditId(banner._id);
-    setBannerType(banner.bannerType);
-    setImage(null);
-
-    setPreview(banner.imageURL ? `${API_BASE_URL}${banner.imageURL}` : "");
-
+    setEditingBanner(banner);
+    setShowForm(true);
     setMessage("");
     setError("");
 
@@ -130,6 +54,19 @@ const Banner = () => {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const handleFormSuccess = () => {
+    setEditingBanner(null);
+    setShowForm(false);
+    fetchBanners();
+  };
+
+  const handleCancel = () => {
+    setEditingBanner(null);
+    setShowForm(false);
+    setMessage("");
+    setError("");
   };
 
   const handleDelete = async (id) => {
@@ -149,8 +86,8 @@ const Banner = () => {
         setMessage(response.data.message);
         fetchBanners();
 
-        if (editId === id) {
-          resetForm();
+        if (editingBanner?._id === id) {
+          setEditingBanner(null);
         }
       }
     } catch (error) {
@@ -174,73 +111,26 @@ const Banner = () => {
     <div className="banner-page">
       <div className="banner-page-header">
         <h2>Banner Management</h2>
+
+        <button type="button" className="banner-add-btn" onClick={handleAdd}>
+          Add Banner
+        </button>
       </div>
 
       {message && <div className="banner-success">{message}</div>}
 
       {error && <div className="banner-error">{error}</div>}
-
-      <div className="banner-form-card">
-        <h3>{editId ? "Edit Banner" : "Add Banner"}</h3>
-
-        <form onSubmit={handleSubmit}>
-          <div className="banner-form-grid">
-            <div className="banner-form-group">
-              <label>Banner Type</label>
-
-              <select
-                value={bannerType}
-                onChange={(e) => setBannerType(e.target.value)}
-              >
-                <option value="">Select Banner Type</option>
-
-                <option value="offer">Offer</option>
-
-                <option value="festival">Festival</option>
-
-                <option value="dailyUsage">Daily Usage</option>
-              </select>
-            </div>
-
-            <div className="banner-form-group">
-              <label>Banner Image</label>
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-
-              {imageError && (
-                <span className="banner-image-error">{imageError}</span>
-              )}
-            </div>
+      {showForm && (
+        <div className="banner-modal-overlay">
+          <div className="banner-modal">
+            <BannerForm
+              editingBanner={editingBanner}
+              onSuccess={handleFormSuccess}
+              onCancel={handleCancel}
+            />
           </div>
-
-          {preview && (
-            <div className="banner-preview">
-              <img src={preview} alt="Banner Preview" />
-            </div>
-          )}
-
-          <div className="banner-form-actions">
-            <button type="submit" className="banner-save-btn">
-              {editId ? "Update Banner" : "Save Banner"}
-            </button>
-
-            {editId && (
-              <button
-                type="button"
-                className="banner-cancel-btn"
-                onClick={resetForm}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
+        </div>
+      )}
       <div className="banner-table-card">
         {loading ? (
           <div className="banner-loading">Loading banners...</div>

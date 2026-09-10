@@ -1,27 +1,25 @@
 import axiosInstance from "../api/axiosInstance";
 
-export const getAllOrders = (params = {}) => {
-  return axiosInstance.get("/orders/admin/all", {
+const BASE = "/orders";
+
+export const createOrder = (data) => axiosInstance.post(`${BASE}/create`, data);
+
+export const getMyOrders = () => axiosInstance.get(`${BASE}/my-orders`);
+
+export const getOrderById = (id) => axiosInstance.get(`${BASE}/${id}`);
+
+export const getAllOrders = (params = {}) =>
+  axiosInstance.get(`${BASE}/admin/all`, {
     params,
   });
-};
 
-export const getOrderById = (id) => {
-  return axiosInstance.get(`/orders/${id}`);
-};
+export const updateOrderStatus = (id, data) =>
+  axiosInstance.patch(`${BASE}/status/${id}`, data);
 
-export const updateOrderStatus = (id, data) => {
-  return axiosInstance.patch(`/orders/status/${id}`, data);
-};
+export const cancelOrder = (id, data) =>
+  axiosInstance.patch(`${BASE}/cancel/${id}`, data);
 
-export const updateTracking = (id, data) => {
-  return axiosInstance.patch(`/orders/tracking/${id}`, data);
-};
+export const updateTracking = (id, data) =>
+  axiosInstance.patch(`${BASE}/tracking/${id}`, data);
 
-export const deleteOrder = (id) => {
-  return axiosInstance.delete(`/orders/delete/${id}`);
-};
-
-export const cancelOrder = (id, data = {}) => {
-  return axiosInstance.patch(`/orders/cancel/${id}`, data);
-};
+export const deleteOrder = (id) => axiosInstance.delete(`${BASE}/delete/${id}`);

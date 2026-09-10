@@ -2,6 +2,9 @@ import axiosInstance from "../api/axiosInstance";
 
 const BASE = "/payments";
 
+export const createCashfreePayment = (data) =>
+  axiosInstance.post(`${BASE}/create`, data);
+
 export const getAllPayments = (params = {}) =>
   axiosInstance.get(`${BASE}/all`, { params });
 

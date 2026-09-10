@@ -5,10 +5,13 @@ import {
   deletePayment,
 } from "../../../Services/paymentService";
 import "./Payment.css";
+import PaymentForm from "./PaymentForm";
 
 const Payment = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState("");
 
   const [status, setStatus] = useState("");
   const [gateway, setGateway] = useState("");
@@ -136,6 +139,24 @@ const Payment = () => {
     }).format(amount || 0);
   };
 
+  const handleAdd = () => {
+    setShowForm(true);
+    setMessage("");
+    setError("");
+  };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setMessage("Payment created successfully");
+    setError("");
+    setPage(1);
+    fetchPayments();
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+  };
+
   return (
     <div className="payment-page">
       <div className="payment-page-header">
@@ -143,10 +164,14 @@ const Payment = () => {
           <h1>Payment Management</h1>
           <p>View and manage all customer payments</p>
         </div>
-
-        <button className="payment-refresh-btn" onClick={fetchPayments}>
-          Refresh
-        </button>
+        <div className="payment-header-actions">
+          <button className="payment-refresh-btn" onClick={fetchPayments}>
+            Refresh
+          </button>
+          <button type="button" className="payment-add-btn" onClick={handleAdd}>
+            + Add Payment
+          </button>
+        </div>
       </div>
 
       {message && <div className="payment-message">{message}</div>}
@@ -213,6 +238,13 @@ const Payment = () => {
           </select>
         </div>
       </div>
+
+      {showForm && (
+        <PaymentForm
+          onSuccess={handleFormSuccess}
+          onCancel={handleCancelForm}
+        />
+      )}
 
       <div className="payment-table-container">
         {loading ? (

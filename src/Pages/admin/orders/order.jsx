@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import {
   getAllOrders,
   updateOrderStatus,
+  updateTracking,
+  cancelOrder,
   deleteOrder,
 } from "../../../Services/orderService";
+
+import OrderForm from "./orderForm";
 import "./Order.css";
 
 const Order = () => {
@@ -25,6 +29,25 @@ const Order = () => {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const [showForm, setShowForm] = useState(false);
+
+  const [showTrackingForm, setShowTrackingForm] = useState(false);
+
+  const [showCancelForm, setShowCancelForm] = useState(false);
+
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const [trackingData, setTrackingData] = useState({
+    courierName: "",
+    trackingNumber: "",
+    trackingUrl: "",
+    expectedDeliveryDate: "",
+  });
+
+  const [cancellationReason, setCancellationReason] = useState("");
+
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -52,7 +75,15 @@ const Order = () => {
 
       if (response.data.success) {
         setOrders(response.data.data || []);
-        setPagination(response.data.pagination);
+
+        setPagination(
+          response.data.pagination || {
+            total: 0,
+            page: 1,
+            limit: 20,
+            totalPages: 1,
+          },
+        );
       }
     } catch (error) {
       console.error("Order Fetch Error:", error);
@@ -67,10 +98,37 @@ const Order = () => {
     fetchOrders();
   }, [page, status, paymentStatus]);
 
+  const handleAdd = () => {
+    setShowForm(true);
+    setMessage("");
+    setError("");
+  };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setMessage("Order created successfully");
+    setError("");
+    setPage(1);
+    fetchOrders();
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
 
     setPage(1);
+
+    setTimeout(() => {
+      fetchOrders();
+    }, 0);
+  };
+
+  const handleRefresh = () => {
+    setMessage("");
+    setError("");
     fetchOrders();
   };
 
@@ -78,6 +136,7 @@ const Order = () => {
     try {
       setMessage("");
       setError("");
+      setActionLoading(true);
 
       const response = await updateOrderStatus(orderId, {
         orderStatus,
@@ -88,7 +147,7 @@ const Order = () => {
           response.data.message || "Order status updated successfully",
         );
 
-        fetchOrders();
+        await fetchOrders();
       }
     } catch (error) {
       console.error("Order Status Update Error:", error);
@@ -96,6 +155,107 @@ const Order = () => {
       setError(
         error.response?.data?.message || "Failed to update order status",
       );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTrackingOpen = (order) => {
+    setSelectedOrder(order);
+
+    setTrackingData({
+      courierName: order.courierName || "",
+      trackingNumber: order.trackingNumber || "",
+      trackingUrl: order.trackingUrl || "",
+      expectedDeliveryDate: order.expectedDeliveryDate
+        ? new Date(order.expectedDeliveryDate).toISOString().split("T")[0]
+        : "",
+    });
+
+    setMessage("");
+    setError("");
+    setShowTrackingForm(true);
+  };
+
+  const handleTrackingChange = (e) => {
+    const { name, value } = e.target;
+
+    setTrackingData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleTrackingSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedOrder) return;
+
+    try {
+      setActionLoading(true);
+      setMessage("");
+      setError("");
+
+      const response = await updateTracking(selectedOrder._id, trackingData);
+
+      if (response.data.success) {
+        setMessage(
+          response.data.message || "Tracking details updated successfully",
+        );
+
+        setShowTrackingForm(false);
+        setSelectedOrder(null);
+
+        await fetchOrders();
+      }
+    } catch (error) {
+      console.error("Tracking Update Error:", error);
+
+      setError(
+        error.response?.data?.message || "Failed to update tracking details",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelOpen = (order) => {
+    setSelectedOrder(order);
+    setCancellationReason("");
+    setMessage("");
+    setError("");
+    setShowCancelForm(true);
+  };
+
+  const handleCancelSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedOrder) return;
+
+    try {
+      setActionLoading(true);
+      setMessage("");
+      setError("");
+
+      const response = await cancelOrder(selectedOrder._id, {
+        reason: cancellationReason.trim(),
+      });
+
+      if (response.data.success) {
+        setMessage(response.data.message || "Order cancelled successfully");
+
+        setShowCancelForm(false);
+        setSelectedOrder(null);
+        setCancellationReason("");
+
+        await fetchOrders();
+      }
+    } catch (error) {
+      console.error("Order Cancel Error:", error);
+
+      setError(error.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -111,18 +271,21 @@ const Order = () => {
     try {
       setMessage("");
       setError("");
+      setActionLoading(true);
 
       const response = await deleteOrder(orderId);
 
       if (response.data.success) {
         setMessage(response.data.message || "Order deleted successfully");
 
-        fetchOrders();
+        await fetchOrders();
       }
     } catch (error) {
       console.error("Order Delete Error:", error);
 
       setError(error.response?.data?.message || "Failed to delete order");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -153,19 +316,32 @@ const Order = () => {
     return value.toLowerCase().replaceAll("_", "-");
   };
 
+  const canCancelOrder = (orderStatus) => {
+    const nonCancelableStatuses = [
+      "SHIPPED",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
+      "RETURNED",
+      "REFUNDED",
+    ];
+
+    return !nonCancelableStatuses.includes(orderStatus);
+  };
+
   return (
     <div className="order-page">
       <div className="order-page-header">
         <h2>Order Management</h2>
 
-        <button className="order-add-btn" onClick={fetchOrders}>
-          Refresh
+        <button type="button" className="order-add-btn" onClick={handleAdd}>
+          + Add Order
         </button>
       </div>
 
-      {error && <div className="order-error">{error}</div>}
-
       {message && <div className="order-success">{message}</div>}
+
+      {error && <div className="order-error">{error}</div>}
 
       <div className="order-filters">
         <form className="order-search-form" onSubmit={handleSearch}>
@@ -215,6 +391,14 @@ const Order = () => {
           <option value="REFUNDED">Refunded</option>
           <option value="PARTIALLY_REFUNDED">Partially Refunded</option>
         </select>
+
+        <button
+          type="button"
+          className="order-refresh-btn"
+          onClick={handleRefresh}
+        >
+          Refresh
+        </button>
       </div>
 
       {loading ? (
@@ -307,42 +491,55 @@ const Order = () => {
                           <select
                             className="order-status-select"
                             value={order.orderStatus}
+                            disabled={actionLoading}
                             onChange={(e) =>
                               handleStatusChange(order._id, e.target.value)
                             }
                           >
                             <option value="PENDING">Pending</option>
-
                             <option value="CONFIRMED">Confirmed</option>
-
                             <option value="PROCESSING">Processing</option>
-
                             <option value="SHIPPED">Shipped</option>
-
                             <option value="OUT_FOR_DELIVERY">
                               Out For Delivery
                             </option>
-
                             <option value="DELIVERED">Delivered</option>
-
                             <option value="CANCELLED">Cancelled</option>
-
                             <option value="RETURN_REQUESTED">
                               Return Requested
                             </option>
-
                             <option value="RETURNED">Returned</option>
-
                             <option value="REFUND_REQUESTED">
                               Refund Requested
                             </option>
-
                             <option value="REFUNDED">Refunded</option>
                           </select>
 
                           <button
+                            type="button"
+                            className="order-icon-btn tracking"
+                            onClick={() => handleTrackingOpen(order)}
+                            disabled={actionLoading}
+                          >
+                            Tracking
+                          </button>
+
+                          {canCancelOrder(order.orderStatus) && (
+                            <button
+                              type="button"
+                              className="order-icon-btn cancel"
+                              onClick={() => handleCancelOpen(order)}
+                              disabled={actionLoading}
+                            >
+                              Cancel
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
                             className="order-icon-btn delete"
                             onClick={() => handleDelete(order._id)}
+                            disabled={actionLoading}
                           >
                             Delete
                           </button>
@@ -360,6 +557,7 @@ const Order = () => {
       {!loading && pagination.totalPages > 1 && (
         <div className="order-pagination">
           <button
+            type="button"
             disabled={page <= 1}
             onClick={() => setPage((prev) => prev - 1)}
           >
@@ -371,11 +569,173 @@ const Order = () => {
           </span>
 
           <button
+            type="button"
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((prev) => prev + 1)}
           >
             Next
           </button>
+        </div>
+      )}
+
+      {showForm && (
+        <OrderForm onSuccess={handleFormSuccess} onCancel={handleCancelForm} />
+      )}
+
+      {showTrackingForm && (
+        <div className="order-tracking-overlay">
+          <div className="order-tracking-card">
+            <div className="order-tracking-header">
+              <h3>Update Tracking</h3>
+
+              <button
+                type="button"
+                className="order-tracking-close"
+                onClick={() => {
+                  setShowTrackingForm(false);
+                  setSelectedOrder(null);
+                }}
+                disabled={actionLoading}
+              >
+                ×
+              </button>
+            </div>
+
+            <form
+              className="order-tracking-body"
+              onSubmit={handleTrackingSubmit}
+            >
+              <div className="order-tracking-group">
+                <label>Courier Name</label>
+
+                <input
+                  type="text"
+                  name="courierName"
+                  value={trackingData.courierName}
+                  onChange={handleTrackingChange}
+                  placeholder="Enter courier name"
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="order-tracking-group">
+                <label>Tracking Number</label>
+
+                <input
+                  type="text"
+                  name="trackingNumber"
+                  value={trackingData.trackingNumber}
+                  onChange={handleTrackingChange}
+                  placeholder="Enter tracking number"
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="order-tracking-group">
+                <label>Tracking URL</label>
+
+                <input
+                  type="text"
+                  name="trackingUrl"
+                  value={trackingData.trackingUrl}
+                  onChange={handleTrackingChange}
+                  placeholder="Enter tracking URL"
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="order-tracking-group">
+                <label>Expected Delivery Date</label>
+
+                <input
+                  type="date"
+                  name="expectedDeliveryDate"
+                  value={trackingData.expectedDeliveryDate}
+                  onChange={handleTrackingChange}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div className="order-tracking-actions">
+                <button
+                  type="button"
+                  className="order-tracking-cancel"
+                  onClick={() => {
+                    setShowTrackingForm(false);
+                    setSelectedOrder(null);
+                  }}
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="order-tracking-save"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? "Updating..." : "Update"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCancelForm && (
+        <div className="order-modal-overlay">
+          <div className="order-modal">
+            <div className="order-modal-header">
+              <h3>Cancel Order</h3>
+
+              <button
+                type="button"
+                className="order-modal-close"
+                onClick={() => {
+                  setShowCancelForm(false);
+                  setSelectedOrder(null);
+                }}
+                disabled={actionLoading}
+              >
+                ×
+              </button>
+            </div>
+
+            <form className="order-modal-body" onSubmit={handleCancelSubmit}>
+              <div className="order-form-group">
+                <label>Cancellation Reason</label>
+
+                <textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder="Enter cancellation reason"
+                  rows="4"
+                />
+              </div>
+
+              <div className="order-modal-actions">
+                <button
+                  type="button"
+                  className="order-modal-cancel"
+                  onClick={() => {
+                    setShowCancelForm(false);
+                    setSelectedOrder(null);
+                  }}
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="order-modal-save"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? "Cancelling..." : "Cancel Order"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
