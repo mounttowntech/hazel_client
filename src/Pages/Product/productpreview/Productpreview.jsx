@@ -377,6 +377,7 @@ export default function ProductPage() {
                   <a href="#location">Select delivery location</a>
                 </span>
               </div>
+
               <div className="pp-delivery-row">
                 <span className="pp-delivery-icon">
                   <TruckIcon />
