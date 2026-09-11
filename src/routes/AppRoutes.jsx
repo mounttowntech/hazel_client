@@ -21,7 +21,15 @@ import Contact from "../pages/Contact/Contact";
 
 import UserLayout from "../layouts/UserLayout";
 import Home from "../Pages/Home";
+import Payment from "../Pages/admin/payments/Payment";
+import Order from "../Pages/admin/orders/Order";
+import Banner from "../Pages/admin/banners/Banner";
+import Profile from "../Pages/admin/profile/Profile";
 import CouponList from "../Components/admin/coupons/CouponList";
+
+import NewArrival from "../Pages/admin/newarrival/NewArrival";
+import Address from "../Pages/admin/address/Address";
+import Review from "../Pages/admin/review/Review";
 
 const AppRoutes = () => {
   return (
@@ -39,6 +47,9 @@ const AppRoutes = () => {
       ================================= */}
 
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+
+        <Route path="/admin/login" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
         {/* =================================
@@ -67,6 +78,17 @@ const AppRoutes = () => {
 
           {/* add more admin routes here, all under this same AdminLayout wrapper */}
           <Route path="/admin/coupons" element={<CouponList />} />
+          <Route path="/admin/payments" element={<Payment />} />
+          <Route path="/admin/orders" element={<Order />} />
+          <Route path="/admin/banners" element={<Banner />} />
+
+          <Route path="/admin/newArrivals" element={<NewArrival />} />
+          <Route path="/admin/addresses" element={<Address />} />
+          <Route path="/admin/reviews" element={<Review />} />
+
+          <Route path="/admin/myprofile" element={<Profile />} />
+
+          {/* add more admin routes here, all under this same AdminLayout wrapper */}
         </Route>
 
         {/* =================================

@@ -100,7 +100,7 @@
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--hz-text-muted);
+color: #fff;
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
@@ -161,7 +161,7 @@
   display: block;
   padding: 8px 12px 8px 46px;
   font-size: 13px;
-  color: var(--hz-text-muted);
+color: #fff;
   text-decoration: none;
   border-radius: 6px;
   opacity: 0.9;
@@ -174,7 +174,7 @@
 }
 
 .hz-sidebar__sublink--active {
-  color: var(--hz-orange-active);
+color:white;
   font-weight: 600;
   opacity: 1;
 }

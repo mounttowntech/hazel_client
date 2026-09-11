@@ -26,7 +26,7 @@ const SizeList = () => {
 
   const [page, setPage] = useState(1);
 
-  const limit = 10;
+  const limit = 2;
 
   const [pagination, setPagination] = useState({
     total: 0,
@@ -97,7 +97,7 @@ const SizeList = () => {
   const fetchSizes = async (
     currentPage = page,
     currentSearch = search,
-    currentStatus = statusFilter
+    currentStatus = statusFilter,
   ) => {
     setLoading(true);
     setTableError("");
@@ -116,12 +116,11 @@ const SizeList = () => {
         response?.data?.pagination || {
           total: 0,
           totalPages: 1,
-        }
+        },
       );
     } catch (error) {
       setTableError(
-        error?.response?.data?.message ||
-          "Couldn't load sizes. Try again."
+        error?.response?.data?.message || "Couldn't load sizes. Try again.",
       );
 
       setSizes([]);
@@ -292,18 +291,15 @@ const SizeList = () => {
     }
 
     if (form.name.trim().length > 50) {
-      errors.name =
-        "Size name cannot exceed 50 characters.";
+      errors.name = "Size name cannot exceed 50 characters.";
     }
 
     if (form.code.trim().length > 20) {
-      errors.code =
-        "Size code cannot exceed 20 characters.";
+      errors.code = "Size code cannot exceed 20 characters.";
     }
 
     if (form.description.trim().length > 250) {
-      errors.description =
-        "Description cannot exceed 250 characters.";
+      errors.description = "Description cannot exceed 250 characters.";
     }
 
     return errors;
@@ -339,33 +335,19 @@ const SizeList = () => {
       if (mode === "create") {
         await sizeService.create(payload);
 
-        showToast(
-          "success",
-          `"${payload.name}" added successfully.`
-        );
+        showToast("success", `"${payload.name}" added successfully.`);
       } else {
-        await sizeService.update(
-          editingId,
-          payload
-        );
+        await sizeService.update(editingId, payload);
 
-        showToast(
-          "success",
-          `"${payload.name}" updated successfully.`
-        );
+        showToast("success", `"${payload.name}" updated successfully.`);
       }
 
       setModalOpen(false);
 
-      await fetchSizes(
-        page,
-        search,
-        statusFilter
-      );
+      await fetchSizes(page, search, statusFilter);
     } catch (error) {
       setFormNotice(
-        error?.response?.data?.message ||
-          "Something went wrong. Try again."
+        error?.response?.data?.message || "Something went wrong. Try again.",
       );
     } finally {
       setSaving(false);
@@ -390,14 +372,9 @@ const SizeList = () => {
     }
 
     try {
-      await sizeService.remove(
-        confirmTarget._id
-      );
+      await sizeService.remove(confirmTarget._id);
 
-      showToast(
-        "success",
-        `"${confirmTarget.name}" deleted successfully.`
-      );
+      showToast("success", `"${confirmTarget.name}" deleted successfully.`);
 
       setConfirmTarget(null);
 
@@ -406,21 +383,14 @@ const SizeList = () => {
        * move to the previous page.
        */
       if (sizes.length === 1 && page > 1) {
-        setPage((previous) =>
-          Math.max(1, previous - 1)
-        );
+        setPage((previous) => Math.max(1, previous - 1));
       } else {
-        await fetchSizes(
-          page,
-          search,
-          statusFilter
-        );
+        await fetchSizes(page, search, statusFilter);
       }
     } catch (error) {
       showToast(
         "error",
-        error?.response?.data?.message ||
-          "Couldn't delete this size."
+        error?.response?.data?.message || "Couldn't delete this size.",
       );
 
       setConfirmTarget(null);
@@ -433,28 +403,17 @@ const SizeList = () => {
 
   const reactivate = async (size) => {
     try {
-      await sizeService.update(
-        size._id,
-        {
-          isActive: true,
-        }
-      );
+      await sizeService.update(size._id, {
+        isActive: true,
+      });
 
-      showToast(
-        "success",
-        `"${size.name}" reactivated successfully.`
-      );
+      showToast("success", `"${size.name}" reactivated successfully.`);
 
-      await fetchSizes(
-        page,
-        search,
-        statusFilter
-      );
+      await fetchSizes(page, search, statusFilter);
     } catch (error) {
       showToast(
         "error",
-        error?.response?.data?.message ||
-          "Couldn't reactivate this size."
+        error?.response?.data?.message || "Couldn't reactivate this size.",
       );
     }
   };
@@ -465,35 +424,18 @@ const SizeList = () => {
 
   const total = pagination?.total || 0;
 
-  const totalPages =
-    pagination?.totalPages || 1;
+  const totalPages = pagination?.totalPages || 1;
 
-  const start =
-    total === 0
-      ? 0
-      : (page - 1) * limit + 1;
+  const start = total === 0 ? 0 : (page - 1) * limit + 1;
 
-  const end =
-    total === 0
-      ? 0
-      : Math.min(
-          page * limit,
-          total
-        );
+  const end = total === 0 ? 0 : Math.min(page * limit, total);
 
   const handlePrevious = () => {
-    setPage((previous) =>
-      Math.max(1, previous - 1)
-    );
+    setPage((previous) => Math.max(1, previous - 1));
   };
 
   const handleNext = () => {
-    setPage((previous) =>
-      Math.min(
-        totalPages,
-        previous + 1
-      )
-    );
+    setPage((previous) => Math.min(totalPages, previous + 1));
   };
 
   /* ============================================================
@@ -502,13 +444,11 @@ const SizeList = () => {
 
   return (
     <div className="hz-sizes">
-
       {/* ========================================================
           PAGE HEADER
           ======================================================== */}
 
       <div className="hz-sizes-topbar">
-
         <h1>Sizes</h1>
 
         <button
@@ -518,7 +458,6 @@ const SizeList = () => {
         >
           + Add Size
         </button>
-
       </div>
 
       {/* ========================================================
@@ -526,17 +465,14 @@ const SizeList = () => {
           ======================================================== */}
 
       <div className="hz-card">
-
         {/* ======================================================
             FILTERS
             ====================================================== */}
 
         <div className="hz-filters">
-
           {/* SEARCH */}
 
           <div className="hz-search">
-
             <svg
               width="15"
               height="15"
@@ -570,7 +506,6 @@ const SizeList = () => {
               onChange={handleSearchChange}
               aria-label="Search sizes"
             />
-
           </div>
 
           {/* STATUS */}
@@ -581,19 +516,12 @@ const SizeList = () => {
             onChange={handleStatusChange}
             aria-label="Filter sizes by status"
           >
-            <option value="">
-              All Status
-            </option>
+            <option value="">All Status</option>
 
-            <option value="true">
-              Active
-            </option>
+            <option value="true">Active</option>
 
-            <option value="false">
-              Inactive
-            </option>
+            <option value="false">Inactive</option>
           </select>
-
         </div>
 
         {/* ======================================================
@@ -601,11 +529,8 @@ const SizeList = () => {
             ====================================================== */}
 
         <div className="hz-table-wrap">
-
           <table className="hz-table">
-
             <colgroup>
-
               <col className="hz-col-sno" />
 
               <col className="hz-col-name" />
@@ -615,53 +540,32 @@ const SizeList = () => {
               <col className="hz-col-status" />
 
               <col className="hz-col-actions" />
-
             </colgroup>
 
             <thead>
-
               <tr>
+                <th scope="col">S.NO</th>
 
-                <th scope="col">
-                  S.NO
-                </th>
+                <th scope="col">NAME</th>
 
-                <th scope="col">
-                  NAME
-                </th>
+                <th scope="col">CODE</th>
 
-                <th scope="col">
-                  CODE
-                </th>
+                <th scope="col">STATUS</th>
 
-                <th scope="col">
-                  STATUS
-                </th>
-
-                <th scope="col">
-                  ACTIONS
-                </th>
-
+                <th scope="col">ACTIONS</th>
               </tr>
-
             </thead>
 
             <tbody>
-
               {/* =================================================
                   LOADING
                   ================================================= */}
 
               {loading && (
                 <tr>
-
-                  <td
-                    colSpan={5}
-                    className="hz-state"
-                  >
+                  <td colSpan={5} className="hz-state">
                     Loading sizes…
                   </td>
-
                 </tr>
               )}
 
@@ -669,58 +573,35 @@ const SizeList = () => {
                   ERROR
                   ================================================= */}
 
-              {!loading &&
-                tableError && (
-                  <tr>
+              {!loading && tableError && (
+                <tr>
+                  <td colSpan={5} className="hz-state hz-state--error">
+                    <span>{tableError}</span>
 
-                    <td
-                      colSpan={5}
-                      className="hz-state hz-state--error"
+                    <button
+                      type="button"
+                      className="hz-retry"
+                      onClick={() => fetchSizes(page, search, statusFilter)}
                     >
-                      <span>
-                        {tableError}
-                      </span>
-
-                      <button
-                        type="button"
-                        className="hz-retry"
-                        onClick={() =>
-                          fetchSizes(
-                            page,
-                            search,
-                            statusFilter
-                          )
-                        }
-                      >
-                        Retry
-                      </button>
-
-                    </td>
-
-                  </tr>
-                )}
+                      Retry
+                    </button>
+                  </td>
+                </tr>
+              )}
 
               {/* =================================================
                   EMPTY
                   ================================================= */}
 
-              {!loading &&
-                !tableError &&
-                sizes.length === 0 && (
-                  <tr>
-
-                    <td
-                      colSpan={5}
-                      className="hz-state"
-                    >
-                      {search ||
-                      statusFilter
-                        ? "No sizes match your filters."
-                        : "No sizes yet. Add your first size to get started."}
-                    </td>
-
-                  </tr>
-                )}
+              {!loading && !tableError && sizes.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="hz-state">
+                    {search || statusFilter
+                      ? "No sizes match your filters."
+                      : "No sizes yet. Add your first size to get started."}
+                  </td>
+                </tr>
+              )}
 
               {/* =================================================
                   DATA
@@ -728,116 +609,79 @@ const SizeList = () => {
 
               {!loading &&
                 !tableError &&
-                sizes.map(
-                  (size, index) => (
-                    <tr
-                      key={size._id}
-                    >
+                sizes.map((size, index) => (
+                  <tr key={size._id}>
+                    {/* S.NO */}
 
-                      {/* S.NO */}
+                    <td className="hz-sno">{(page - 1) * limit + index + 1}</td>
 
-                      <td className="hz-sno">
-                        {(page - 1) * limit +
-                          index +
-                          1}
-                      </td>
+                    {/* NAME */}
 
-                      {/* NAME */}
+                    <td className="hz-name">{size.name}</td>
 
-                      <td className="hz-name">
-                        {size.name}
-                      </td>
+                    {/* CODE */}
 
-                      {/* CODE */}
+                    <td className="hz-code-cell">
+                      {size.code ? (
+                        <span className="hz-code">{size.code}</span>
+                      ) : (
+                        <span className="hz-empty">—</span>
+                      )}
+                    </td>
 
-                      <td className="hz-code-cell">
+                    {/* STATUS */}
 
-                        {size.code ? (
-                          <span className="hz-code">
-                            {size.code}
-                          </span>
-                        ) : (
-                          <span className="hz-empty">
-                            —
-                          </span>
-                        )}
+                    <td className="hz-status-cell">
+                      <span
+                        className={`hz-badge ${
+                          size.isActive
+                            ? "hz-badge--active"
+                            : "hz-badge--inactive"
+                        }`}
+                      >
+                        {size.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
 
-                      </td>
-
-                      {/* STATUS */}
-
-                      <td className="hz-status-cell">
-
-                        <span
-                          className={`hz-badge ${
-                            size.isActive
-                              ? "hz-badge--active"
-                              : "hz-badge--inactive"
-                          }`}
-                        >
-                          {size.isActive
-                            ? "Active"
-                            : "Inactive"}
-                        </span>
-
-                      </td>
-
-                      {/* =================================================
+                    {/* =================================================
                           IMPORTANT:
                           TD IS NORMAL TABLE CELL.
                           FLEX IS ONLY ON INNER DIV.
                           ================================================= */}
 
-                      <td className="hz-actions-cell">
+                    <td className="hz-actions-cell">
+                      <div className="hz-actions">
+                        <button
+                          type="button"
+                          className="hz-link"
+                          onClick={() => openEdit(size)}
+                        >
+                          Edit
+                        </button>
 
-                        <div className="hz-actions">
-
+                        {size.isActive ? (
+                          <button
+                            type="button"
+                            className="hz-link hz-link--danger"
+                            onClick={() => openDeleteConfirm(size)}
+                          >
+                            Delete
+                          </button>
+                        ) : (
                           <button
                             type="button"
                             className="hz-link"
-                            onClick={() =>
-                              openEdit(size)
-                            }
+                            onClick={() => reactivate(size)}
                           >
-                            Edit
+                            Reactivate
                           </button>
-
-                          {size.isActive ? (
-                            <button
-                              type="button"
-                              className="hz-link hz-link--danger"
-                              onClick={() =>
-                                openDeleteConfirm(
-                                  size
-                                )
-                              }
-                            >
-                              Delete
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="hz-link"
-                              onClick={() =>
-                                reactivate(size)
-                              }
-                            >
-                              Reactivate
-                            </button>
-                          )}
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-                  )
-                )}
-
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
-
           </table>
-
         </div>
 
         {/* ======================================================
@@ -845,13 +689,11 @@ const SizeList = () => {
             ====================================================== */}
 
         <div className="hz-footer">
-
           <span className="hz-range">
             {start}–{end} of {total}
           </span>
 
           <div className="hz-pager">
-
             <button
               type="button"
               className="hz-btn hz-btn--ghost"
@@ -868,18 +710,13 @@ const SizeList = () => {
             <button
               type="button"
               className="hz-btn hz-btn--ghost"
-              disabled={
-                page >= totalPages
-              }
+              disabled={page >= totalPages}
               onClick={handleNext}
             >
               Next
             </button>
-
           </div>
-
         </div>
-
       </div>
 
       {/* ========================================================
@@ -887,25 +724,13 @@ const SizeList = () => {
           ======================================================== */}
 
       {modalOpen && (
-        <div
-          className="hz-overlay"
-          onClick={closeModal}
-        >
-
+        <div className="hz-overlay" onClick={closeModal}>
           <div
             className="hz-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
+            onClick={(event) => event.stopPropagation()}
           >
-
             <div className="hz-modal-head">
-
-              <h2>
-                {mode === "create"
-                  ? "Add Size"
-                  : "Edit Size"}
-              </h2>
+              <h2>{mode === "create" ? "Add Size" : "Edit Size"}</h2>
 
               <button
                 type="button"
@@ -915,21 +740,13 @@ const SizeList = () => {
               >
                 ×
               </button>
-
             </div>
 
-            <form
-              className="hz-form"
-              onSubmit={handleSubmit}
-            >
-
+            <form className="hz-form" onSubmit={handleSubmit}>
               {/* NAME */}
 
               <label className="hz-field">
-
-                <span>
-                  Name
-                </span>
+                <span>Name</span>
 
                 <input
                   type="text"
@@ -942,20 +759,14 @@ const SizeList = () => {
                 />
 
                 {formErrors.name && (
-                  <small className="hz-field-error">
-                    {formErrors.name}
-                  </small>
+                  <small className="hz-field-error">{formErrors.name}</small>
                 )}
-
               </label>
 
               {/* CODE */}
 
               <label className="hz-field">
-
-                <span>
-                  Code
-                </span>
+                <span>Code</span>
 
                 <input
                   type="text"
@@ -969,20 +780,14 @@ const SizeList = () => {
                 />
 
                 {formErrors.code && (
-                  <small className="hz-field-error">
-                    {formErrors.code}
-                  </small>
+                  <small className="hz-field-error">{formErrors.code}</small>
                 )}
-
               </label>
 
               {/* DESCRIPTION */}
 
               <label className="hz-field">
-
-                <span>
-                  Description
-                </span>
+                <span>Description</span>
 
                 <textarea
                   name="description"
@@ -998,37 +803,27 @@ const SizeList = () => {
                     {formErrors.description}
                   </small>
                 )}
-
               </label>
 
               {/* ACTIVE */}
 
               <label className="hz-toggle-field">
-
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={handleActiveChange}
                 />
 
-                <span>
-                  Active
-                </span>
-
+                <span>Active</span>
               </label>
 
               {/* NOTICE */}
 
-              {formNotice && (
-                <div className="hz-form-notice">
-                  {formNotice}
-                </div>
-              )}
+              {formNotice && <div className="hz-form-notice">{formNotice}</div>}
 
               {/* BUTTONS */}
 
               <div className="hz-form-actions">
-
                 <button
                   type="button"
                   className="hz-btn hz-btn--ghost"
@@ -1046,16 +841,12 @@ const SizeList = () => {
                   {saving
                     ? "Saving..."
                     : mode === "create"
-                    ? "Add Size"
-                    : "Save Changes"}
+                      ? "Add Size"
+                      : "Save Changes"}
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
       )}
 
@@ -1064,30 +855,19 @@ const SizeList = () => {
           ======================================================== */}
 
       {confirmTarget && (
-        <div
-          className="hz-overlay"
-          onClick={closeDeleteConfirm}
-        >
-
+        <div className="hz-overlay" onClick={closeDeleteConfirm}>
           <div
             className="hz-confirm"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
+            onClick={(event) => event.stopPropagation()}
           >
-
-            <h3>
-              Delete "{confirmTarget.name}"?
-            </h3>
+            <h3>Delete "{confirmTarget.name}"?</h3>
 
             <p>
-              This size will be deactivated
-              and won't be available for
-              new variants.
+              This size will be deactivated and won't be available for new
+              variants.
             </p>
 
             <div className="hz-form-actions">
-
               <button
                 type="button"
                 className="hz-btn hz-btn--ghost"
@@ -1103,11 +883,8 @@ const SizeList = () => {
               >
                 Delete
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
 
@@ -1118,15 +895,12 @@ const SizeList = () => {
       {toast && (
         <div
           className={`hz-toast ${
-            toast.type === "success"
-              ? "hz-toast--success"
-              : "hz-toast--error"
+            toast.type === "success" ? "hz-toast--success" : "hz-toast--error"
           }`}
         >
           {toast.message}
         </div>
       )}
-
     </div>
   );
 };
