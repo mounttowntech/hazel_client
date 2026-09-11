@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 import {
   sendOTP,
   verifyOTP,
-} from "../../../services/authService";
+} from "../../services/authService";
 
-import "../../../styles/auth.css";
+import "../../styles/auth.css";
+import toast from "react-hot-toast";
 
 const VerifyOTP = () => {
 
@@ -185,9 +186,9 @@ useEffect(() => {
           mobileNumber,
           enteredOTP
         );
-
+console.log('verify_otp_response', response);
       if (response.success) {
-
+const user = response.user;
         // =====================================================
         // SAVE TOKEN
         // =====================================================
@@ -224,15 +225,23 @@ useEffect(() => {
         // =====================================================
         // GO HOME
         // =====================================================
+        // login success toast
 
         setTimeout(() => {
-
-          navigate("/admin/dashboard");
+          toast.success(response?.message || "OTP verified successfully.");
+          console.log('User data:', user);
+          if(user && user.role === 'admin') {
+            navigate("/admin/dashboard");
+          } else if(user && user.role === 'customer') {
+            navigate("/");
+          }else {
+            navigate("/login");
+          }
 
         }, 700);
 
       } else {
-
+toast.error(response?.message || "Invalid OTP.");
         setError(
           response.message ||
             "Invalid OTP."

@@ -13,7 +13,7 @@ import {
   Star,
   CreditCard,
   BarChart2,
-  Settings,
+  // Settings,
 } from "lucide-react";
 import "./Sidebar.css";
 
@@ -34,10 +34,9 @@ const navConfig = [
       { label: "Product Length", path: "/admin/catalog/product-length" },
       // { label: "Neck Patterns", path: "/admin/catalog/neck-patterns" },
       { label: "Products", path: "/admin/catalog/products" },
-      { label: "Product Variants", path: "/admin/catalog/product-variants" },
+      // { label: "Product Variants", path: "/admin/catalog/product-variants" },
       { label: "Sizes", path: "/admin/catalog/size" },
       { label: "Colors", path: "/admin/catalog/colors" },
-      
     ],
   },
   {
@@ -49,9 +48,9 @@ const navConfig = [
     ],
   },
   { label: "Orders", icon: ClipboardList, path: "/admin/orders" },
-  { label: "Customers", icon: Users, path: "/admin/customers" },
+  { label: "Address", icon: Users, path: "/admin/addresses" },
   { label: "Coupons", icon: Ticket, path: "/admin/coupons" },
-  { label: "Discounts", icon: Tag, path: "/admin/discounts" },
+  { label: "New Arrivals", icon: Tag, path: "/admin/newArrivals" },
   { label: "Banners", icon: Image, path: "/admin/banners" },
   { label: "Reviews", icon: Star, path: "/admin/reviews" },
   { label: "Payments", icon: CreditCard, path: "/admin/payments" },
@@ -63,14 +62,14 @@ const navConfig = [
       { label: "Customer Report", path: "/admin/reports/customers" },
     ],
   },
-  {
-    label: "Settings",
-    icon: Settings,
-    children: [
-      { label: "General", path: "/admin/settings/general" },
-      { label: "Roles & Permissions", path: "/admin/settings/roles" },
-    ],
-  },
+  // {
+  //   label: "Settings",
+  //   icon: Settings,
+  //   children: [
+  //     { label: "General", path: "/admin/settings/general" },
+  //     { label: "Roles & Permissions", path: "/admin/settings/roles" },
+  //   ],
+  // },
 ];
 
 const Sidebar = () => {
@@ -87,7 +86,14 @@ const Sidebar = () => {
         <div className="hz-sidebar__logo-icon">
           {/* Dress silhouette mark */}
           <svg viewBox="0 0 40 48" className="hz-sidebar__dress-icon">
-            <circle cx="20" cy="8" r="5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <circle
+              cx="20"
+              cy="8"
+              r="5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
             <path
               d="M13 13 L9 44 H31 L27 13 C25 16 15 16 13 13 Z"
               fill="none"
@@ -116,7 +122,8 @@ const Sidebar = () => {
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      "hz-sidebar__link" + (isActive ? " hz-sidebar__link--active" : "")
+                      "hz-sidebar__link" +
+                      (isActive ? " hz-sidebar__link--active" : "")
                     }
                   >
                     <Icon size={18} className="hz-sidebar__icon" />
@@ -139,18 +146,25 @@ const Sidebar = () => {
                   <ChevronDown
                     size={16}
                     className={
-                      "hz-sidebar__chevron" + (isOpen ? " hz-sidebar__chevron--open" : "")
+                      "hz-sidebar__chevron" +
+                      (isOpen ? " hz-sidebar__chevron--open" : "")
                     }
                   />
                 </button>
 
-                <ul className={"hz-sidebar__submenu" + (isOpen ? " hz-sidebar__submenu--open" : "")}>
+                <ul
+                  className={
+                    "hz-sidebar__submenu" +
+                    (isOpen ? " hz-sidebar__submenu--open" : "")
+                  }
+                >
                   {item.children.map((child) => (
                     <li key={child.label}>
                       <NavLink
                         to={child.path}
                         className={({ isActive }) =>
-                          "hz-sidebar__sublink" + (isActive ? " hz-sidebar__sublink--active" : "")
+                          "hz-sidebar__sublink" +
+                          (isActive ? " hz-sidebar__sublink--active" : "")
                         }
                       >
                         {child.label}

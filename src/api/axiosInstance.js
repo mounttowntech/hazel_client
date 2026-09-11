@@ -3,9 +3,9 @@ import API_URL from "../config/api";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 axiosInstance.interceptors.request.use(
@@ -20,7 +20,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 axiosInstance.interceptors.response.use(
@@ -33,11 +33,11 @@ axiosInstance.interceptors.response.use(
       "[API ERROR]",
       error.config?.url,
       error.response?.status,
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;
