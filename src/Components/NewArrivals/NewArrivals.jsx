@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import "./NewArrivals.css";
 
-// import API from "../../Services/api";
-import axiosInstance from "../../api/axiosInstance";
+import API from "../../Services/api";
 
 const NewArrivals = () => {
   const [products, setProducts] = useState([]);
@@ -69,7 +68,7 @@ const NewArrivals = () => {
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
-        const response = await axiosInstance.get("/newArrivals/all");
+        const response = await API.get("/newArrivals/all");
 
         if (!response.data?.success) {
           return;

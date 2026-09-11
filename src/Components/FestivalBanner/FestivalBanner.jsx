@@ -16,12 +16,15 @@ const FestivalBanner = () => {
         if (Array.isArray(rawData) && rawData.length > 0) {
           const firstBanner = rawData[0];
 
-          const bannerImg = firstBanner.imageURL?.startsWith("http")
-            ? firstBanner.imageURL
-            : `http://localhost:5004${firstBanner.imageURL}`;
+          // Safely check all potential property names coming from the backend
+          const rawImgPath = firstBanner.imageURL || firstBanner.imageUrl || firstBanner.image || "";
+
+          const bannerImg = rawImgPath.startsWith("http")
+            ? rawImgPath
+            : `http://localhost:5004${rawImgPath}`;
 
           setBanner({
-            id: firstBanner._id,
+            id: firstBanner._id || firstBanner.id,
             image: bannerImg,
             redirectUrl: firstBanner.redirectUrl || "#",
           });
@@ -46,7 +49,7 @@ const FestivalBanner = () => {
     );
   }
 
-  if (!banner) return null;
+  if (!banner || !banner.image || banner.image === "http://localhost:5004") return null;
 
   return (
     <section className="festival-banner-section">

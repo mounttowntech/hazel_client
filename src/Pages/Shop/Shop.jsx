@@ -30,6 +30,35 @@ const STATIC_FILTER_GROUPS = [
     ],
   },
   {
+    key: "color",
+    label: "Color / Print",
+    type: "swatch",
+    options: [
+      { name: "Light Coral", value: "Light Coral", hex: "#FF7F7F" },
+      { name: "Peach Orange", value: "Peach Orange", hex: "#FFAC7F" },
+      { name: "Warm Amber", value: "Warm Amber", hex: "#FFCC7F" },
+      { name: "Soft Yellow", value: "Soft Yellow", hex: "#FFF67F" },
+      { name: "Lime Pastel", value: "Lime Pastel", hex: "#D0FF7F" },
+      { name: "Spring Green", value: "Spring Green", hex: "#7FFF8A" },
+      { name: "Aqua Mint", value: "Aqua Mint", hex: "#7FFFC7" },
+      { name: "Pale Cyan", value: "Pale Cyan", hex: "#7FFFEC" },
+      { name: "Sky Blue", value: "Sky Blue", hex: "#7FD4FF" },
+      { name: "Cornflower Blue", value: "Cornflower Blue", hex: "#7F9DFF" },
+      { name: "Periwinkle", value: "Periwinkle", hex: "#8C7FFF" },
+      { name: "Light Orchid", value: "Light Orchid", hex: "#C77FFF" },
+      { name: "Light Violet", value: "Light Violet", hex: "#EE7FFF" },
+      { name: "Orchid Pink", value: "Orchid Pink", hex: "#FF7FD9" },
+      { name: "Bubblegum Pink", value: "Bubblegum Pink", hex: "#FF7FBB" },
+      { name: "Dusty Rose", value: "Dusty Rose", hex: "#FF7F90" },
+      { name: "Salmon Pink", value: "Salmon Pink", hex: "#FF7F81" },
+      { name: "Deep Burgundy Brown", value: "Deep Burgundy Brown", hex: "#372425" },
+      { name: "Midnight Navy", value: "Midnight Navy", hex: "#162441" },
+      { name: "Golden Brown", value: "Golden Brown", hex: "#946518" },
+      { name: "White", value: "White", hex: "#FFFFFF" },
+      { name: "Black", value: "Black", hex: "#000000" },
+    ],
+  },
+  {
     key: "price_range_option",
     label: "Price",
     type: "price_range_module",
@@ -137,8 +166,8 @@ function useShopData() {
       params.append("limit", PAGE_SIZE);
       params.append("sort", currentSort);
       
-      // Send max_price only if no specific price tier checkbox is checked
-      if (currentMaxPrice && !activeFilters.price_range_option) {
+      // If a price checkbox tier is active, do not pass max_price slider
+      if (!activeFilters.price_range_option) {
         params.append("max_price", currentMaxPrice);
       }
 
@@ -173,7 +202,7 @@ function useShopData() {
       });
 
       setProducts(formatted);
-      setTotal(response.data?.pagination?.total || formatted.length);
+      setTotal(response.data?.pagination?.total ?? formatted.length);
     } catch (err) {
       setError("Failed to load products from server.");
     } finally {
@@ -186,14 +215,15 @@ function useShopData() {
     debounceRef.current = setTimeout(() => {
       setPage(1);
       fetchProductsFromBackend(filters, sort, 1, maxPrice);
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(debounceRef.current);
   }, [filters, sort, maxPrice, fetchProductsFromBackend]);
 
   const toggleCheckbox = useCallback((key, value) => {
     setFilters((prev) => {
-      return { ...prev, [key]: prev[key]?.[0] === value ? undefined : [value] };
+      const nextVal = prev[key]?.[0] === value ? undefined : [value];
+      return { ...prev, [key]: nextVal };
     });
   }, []);
 
@@ -269,6 +299,23 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
               </label>
             ))}
 
+          {group.type === "swatch" && (
+            <div className="swatch-grid">
+              {group.options.map((opt) => {
+                const checked = filters[group.key]?.[0] === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => onToggleCheckbox(group.key, opt.value)}
+                    title={opt.name}
+                    className={`swatch ${checked ? "swatch-checked" : ""} ${opt.hex === "#FFFFFF" ? "swatch-outline" : ""}`}
+                    style={{ background: opt.hex }}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           {group.type === "price_range_module" && (
             <div className="range-block">
               <input
@@ -277,7 +324,12 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
                 max={group.max}
                 step={group.step}
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                onChange={(e) => {
+                  setMaxPrice(Number(e.target.value));
+                  if (filters.price_range_option) {
+                    onToggleCheckbox("price_range_option", filters.price_range_option[0]);
+                  }
+                }}
                 className="range-input"
               />
               <div className="range-labels">
@@ -286,13 +338,13 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
               </div>
               <div style={{ marginTop: "12px" }}>
                 {group.priceOptions.map((opt) => {
-                  const checked = filters[group.key]?.[0] === opt.value;
+                  const checked = filters["price_range_option"]?.[0] === opt.value;
                   return (
                     <label key={opt.value} className="checkbox-row">
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => onToggleCheckbox(group.key, opt.value)}
+                        onChange={() => onToggleCheckbox("price_range_option", opt.value)}
                         className="checkbox-input"
                       />
                       <span className="checkbox-label">{opt.label}</span>
@@ -385,6 +437,12 @@ function ProductGrid({ products, total, loading, error, sort, setSort, onOpenMob
         </div>
 
         {error && <p className="error-text">{error}</p>}
+
+        {!loading && products.length === 0 && (
+          <div style={{ textAlign: "center", padding: "40px", color: "#666", fontSize: "16px" }}>
+            No products found matching this price range.
+          </div>
+        )}
 
         <div className="grid">
           {products.map((p) => <ProductCard key={p.id} product={p} />)}

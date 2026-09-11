@@ -16,7 +16,7 @@ import ProductVariantList from "../pages/admin/catalog/productVariant/ProductVar
 import SizeList from "../pages/admin/catalog/size/SizeList";
 import ColorList from "../pages/admin/catalog/color/Colorlist"
 import Shop from "../pages/Shop/Shop";
-
+import About from "../Pages/About/About"
 import UserLayout from "../layouts/UserLayout";
 import Home from "../Pages/Home";
 
@@ -28,6 +28,7 @@ const AppRoutes = () => {
       <Route element={<UserLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/about" element={<About/>} />
       </Route>
       {/* =================================
           AUTH ROUTES
