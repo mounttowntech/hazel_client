@@ -33,6 +33,9 @@ import CouponList from "../Components/admin/coupons/CouponList";
 import NewArrival from "../Pages/admin/newarrival/NewArrival";
 import Address from "../Pages/admin/address/Address";
 import Review from "../Pages/admin/review/Review";
+import AdminTrendingProducts from "../Pages/admin/admintrendingproducts/admintrendingproducts";
+import Cart from "../Components/Cart/Cart";
+import Wishlist from "../Components/Wishlist/Wishlist";
 
 const AppRoutes = () => {
   return (
@@ -54,6 +57,9 @@ const AppRoutes = () => {
           <Route path="/shop" element={<Shop />} />
           <Route path="/product" element={<Productpreview />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          {/* <Route path="/about" element={<About />} /> */}
         </Route>
         {/* =================================
 >>>>>>> 59baf5e64eed11df4e1fabd68847ca8daee37ff8
@@ -101,7 +107,10 @@ const AppRoutes = () => {
           <Route path="/admin/reviews" element={<Review />} />
 
           <Route path="/admin/myprofile" element={<Profile />} />
-
+          <Route
+            path="/admin/trending-products"
+            element={<AdminTrendingProducts />}
+          />
           {/* add more admin routes here, all under this same AdminLayout wrapper */}
         </Route>
 

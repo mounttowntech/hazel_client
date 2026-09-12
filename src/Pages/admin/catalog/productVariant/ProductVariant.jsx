@@ -44,7 +44,7 @@ const ProductVariants = () => {
         setLoading(false);
       }
     },
-    [search, statusFilter]
+    [search, statusFilter],
   );
 
   useEffect(() => {
@@ -273,7 +273,10 @@ const ProductVariants = () => {
       )}
 
       {showForm && (
-        <ProductVariantForm variant={editingVariant} onClose={handleFormClose} />
+        <ProductVariantForm
+          variant={editingVariant}
+          onClose={handleFormClose}
+        />
       )}
     </div>
   );

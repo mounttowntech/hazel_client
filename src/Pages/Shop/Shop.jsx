@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import API from "../../services/api";
 import "./Shop.css";
+import { addToWishlist } from "../../../src/Services/wishlistService";
 
 const STATIC_FILTER_GROUPS = [
   {
@@ -51,7 +52,11 @@ const STATIC_FILTER_GROUPS = [
       { name: "Bubblegum Pink", value: "Bubblegum Pink", hex: "#FF7FBB" },
       { name: "Dusty Rose", value: "Dusty Rose", hex: "#FF7F90" },
       { name: "Salmon Pink", value: "Salmon Pink", hex: "#FF7F81" },
-      { name: "Deep Burgundy Brown", value: "Deep Burgundy Brown", hex: "#372425" },
+      {
+        name: "Deep Burgundy Brown",
+        value: "Deep Burgundy Brown",
+        hex: "#372425",
+      },
       { name: "Midnight Navy", value: "Midnight Navy", hex: "#162441" },
       { name: "Golden Brown", value: "Golden Brown", hex: "#946518" },
       { name: "White", value: "White", hex: "#FFFFFF" },
@@ -144,7 +149,9 @@ function useShopData() {
     API.get("/subcategories/all")
       .then((res) => {
         const raw = res.data;
-        const subCategoriesList = Array.isArray(raw) ? raw : (raw?.data || raw?.subCategories || []);
+        const subCategoriesList = Array.isArray(raw)
+          ? raw
+          : raw?.data || raw?.subCategories || [];
         const formattedCollections = subCategoriesList
           .map((sub) => ({
             value: sub._id || sub.id,
@@ -156,59 +163,72 @@ function useShopData() {
       .catch(() => {});
   }, []);
 
-  const fetchProductsFromBackend = useCallback(async (activeFilters, currentSort, currentPage, currentMaxPrice) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchProductsFromBackend = useCallback(
+    async (activeFilters, currentSort, currentPage, currentMaxPrice) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = new URLSearchParams();
-      params.append("page", currentPage);
-      params.append("limit", PAGE_SIZE);
-      params.append("sort", currentSort);
-      
-      // If a price checkbox tier is active, do not pass max_price slider
-      if (!activeFilters.price_range_option) {
-        params.append("max_price", currentMaxPrice);
-      }
+        const params = new URLSearchParams();
+        params.append("page", currentPage);
+        params.append("limit", PAGE_SIZE);
+        params.append("sort", currentSort);
 
-      Object.entries(activeFilters).forEach(([key, val]) => {
-        if (!val) return;
-        if (Array.isArray(val)) {
-          if (val.length > 0 && val[0]) {
-            params.append(key, val[0]);
-          }
-        } else {
-          params.append(key, val);
+        // Send max_price only if no specific price tier checkbox is checked
+        if (currentMaxPrice && !activeFilters.price_range_option) {
+          params.append("max_price", currentMaxPrice);
         }
-      });
 
-      const response = await API.get(`/products/all?${params.toString()}`);
-      const rawData = response.data?.data || [];
+        Object.entries(activeFilters).forEach(([key, val]) => {
+          if (!val) return;
+          if (Array.isArray(val)) {
+            if (val.length > 0 && val[0]) {
+              params.append(key, val[0]);
+            }
+          } else {
+            params.append(key, val);
+          }
+        });
 
-      const formatted = rawData.map((item, idx) => {
-        const firstVariant = item.variants?.[0] || {};
-        let rawImage = firstVariant.media?.[0]?.imageURL || firstVariant.images?.[0] || "";
-        const imageUrl = rawImage.startsWith("http") ? rawImage : `${BACKEND_BASE_URL}${rawImage}`;
-        const price = firstVariant.discountPrice ?? firstVariant.price ?? item.price ?? 1299;
+        const response = await API.get(`/products/all?${params.toString()}`);
+        const rawData = response.data?.data || [];
 
-        return {
-          id: item._id || idx,
-          name: item.name || "Exclusive Item",
-          subtitle: firstVariant.fabric ? `${firstVariant.fabric} • Hand Block Print` : "Cambric Cotton • Hand Block Print",
-          rating: item.rating || 4.2,
-          price: price,
-          image: rawImage ? imageUrl : "",
-        };
-      });
+        const formatted = rawData.map((item, idx) => {
+          const firstVariant = item.variants?.[0] || {};
+          let rawImage =
+            firstVariant.media?.[0]?.imageURL || firstVariant.images?.[0] || "";
+          const imageUrl = rawImage.startsWith("http")
+            ? rawImage
+            : `${BACKEND_BASE_URL}${rawImage}`;
+          const price =
+            firstVariant.discountPrice ??
+            firstVariant.price ??
+            item.price ??
+            1299;
 
-      setProducts(formatted);
-      setTotal(response.data?.pagination?.total ?? formatted.length);
-    } catch (err) {
-      setError("Failed to load products from server.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+          return {
+            id: item._id || idx,
+            name: item.name || "Exclusive Item",
+            subtitle: firstVariant.fabric
+              ? `${firstVariant.fabric} • Hand Block Print`
+              : "Cambric Cotton • Hand Block Print",
+            rating: item.rating || 4.2,
+            price: price,
+            image: rawImage ? imageUrl : "",
+            variantId: firstVariant._id || null,
+          };
+        });
+
+        setProducts(formatted);
+        setTotal(response.data?.pagination?.total || formatted.length);
+      } catch (err) {
+        setError("Failed to load products from server.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -228,7 +248,10 @@ function useShopData() {
   }, []);
 
   const setRadio = useCallback((key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value === "any" ? undefined : value }));
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value === "any" ? undefined : value,
+    }));
   }, []);
 
   const clearAll = useCallback(() => {
@@ -248,20 +271,44 @@ function useShopData() {
 
   return {
     filterGroups,
-    filters, sort, setSort, products, total, loading, error,
-    maxPrice, setMaxPrice,
-    toggleCheckbox, setRadio, clearAll,
+    filters,
+    sort,
+    setSort,
+    products,
+    total,
+    loading,
+    error,
+    maxPrice,
+    setMaxPrice,
+    toggleCheckbox,
+    setRadio,
+    clearAll,
   };
 }
 
-function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, setMaxPrice }) {
+function FilterGroup({
+  group,
+  filters,
+  onToggleCheckbox,
+  onSetRadio,
+  maxPrice,
+  setMaxPrice,
+}) {
   const [open, setOpen] = useState(true);
 
-  if (group.type !== "price_range_module" && group.type !== "range" && (!group.options || group.options.length === 0)) return null;
+  if (
+    group.type !== "price_range_module" &&
+    group.type !== "range" &&
+    (!group.options || group.options.length === 0)
+  )
+    return null;
 
   return (
     <div className="filter-group">
-      <button className="filter-group-header" onClick={() => setOpen((o) => !o)}>
+      <button
+        className="filter-group-header"
+        onClick={() => setOpen((o) => !o)}
+      >
         <span>{group.label}</span>
         <span className={`chevron ${open ? "chevron-open" : ""}`}>⌄</span>
       </button>
@@ -327,7 +374,10 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
                 onChange={(e) => {
                   setMaxPrice(Number(e.target.value));
                   if (filters.price_range_option) {
-                    onToggleCheckbox("price_range_option", filters.price_range_option[0]);
+                    onToggleCheckbox(
+                      "price_range_option",
+                      filters.price_range_option[0],
+                    );
                   }
                 }}
                 className="range-input"
@@ -338,13 +388,16 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
               </div>
               <div style={{ marginTop: "12px" }}>
                 {group.priceOptions.map((opt) => {
-                  const checked = filters["price_range_option"]?.[0] === opt.value;
+                  const checked =
+                    filters["price_range_option"]?.[0] === opt.value;
                   return (
                     <label key={opt.value} className="checkbox-row">
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => onToggleCheckbox("price_range_option", opt.value)}
+                        onChange={() =>
+                          onToggleCheckbox("price_range_option", opt.value)
+                        }
                         className="checkbox-input"
                       />
                       <span className="checkbox-label">{opt.label}</span>
@@ -360,19 +413,41 @@ function FilterGroup({ group, filters, onToggleCheckbox, onSetRadio, maxPrice, s
   );
 }
 
-function Sidebar({ filterGroups, filters, onToggleCheckbox, onSetRadio, onClearAll, maxPrice, setMaxPrice, mobileOpen, onCloseMobile }) {
+function Sidebar({
+  filterGroups,
+  filters,
+  onToggleCheckbox,
+  onSetRadio,
+  onClearAll,
+  maxPrice,
+  setMaxPrice,
+  mobileOpen,
+  onCloseMobile,
+}) {
   return (
     <>
-      {mobileOpen && <div className="sidebar-overlay" onClick={onCloseMobile} />}
+      {mobileOpen && (
+        <div className="sidebar-overlay" onClick={onCloseMobile} />
+      )}
       <aside className={`sidebar ${mobileOpen ? "sidebar-mobile-open" : ""}`}>
         <div className="sidebar-scroll">
           <div className="sidebar-title-block">
             <div className="title-header-row">
               <h2 className="sidebar-title">Shop Nightwear</h2>
-              <button className="clear-all-top" onClick={onClearAll}>Clear All</button>
+              <button className="clear-all-top" onClick={onClearAll}>
+                Clear All
+              </button>
             </div>
-            <p className="sidebar-subtitle">Thoughtfully designed cotton nightwear for everyday comfort.</p>
-            <button className="sidebar-close-mobile" onClick={onCloseMobile} aria-label="Close filters">✕</button>
+            <p className="sidebar-subtitle">
+              Thoughtfully designed cotton nightwear for everyday comfort.
+            </p>
+            <button
+              className="sidebar-close-mobile"
+              onClick={onCloseMobile}
+              aria-label="Close filters"
+            >
+              ✕
+            </button>
           </div>
 
           {filterGroups.map((group) => (
@@ -395,6 +470,31 @@ function Sidebar({ filterGroups, filters, onToggleCheckbox, onSetRadio, onClearA
 function ProductCard({ product }) {
   const [imgError, setImgError] = useState(false);
 
+  const handleAddToWishlist = async (product) => {
+    console.log("Adding to wishlist:", product);
+    if (!product) {
+      alert("Product is required");
+      return;
+    }
+
+    try {
+      const response = await addToWishlist({
+        productId: product.id,
+        variantId: product.variantId,
+      });
+
+      if (response.data?.success) {
+        alert(response.data.message || "Product added to wishlist");
+      }
+    } catch (error) {
+      console.error("ADD TO WISHLIST ERROR:", error);
+
+      alert(
+        error.response?.data?.message || "Failed to add product to wishlist",
+      );
+    }
+  };
+
   return (
     <div className="card">
       <div className="card-image">
@@ -406,11 +506,28 @@ function ProductCard({ product }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f5f5f5', color: '#666', fontSize: '12px' }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              background: "#f5f5f5",
+              color: "#666",
+              fontSize: "12px",
+            }}
+          >
             No Image Available
           </div>
         )}
-        <button className="wishlist-btn" aria-label="Add to wishlist">♡</button>
+        <button
+          type="button"
+          className="wishlist-btn"
+          aria-label="Add to wishlist"
+          onClick={() => handleAddToWishlist(product)}
+        >
+          ♡
+        </button>
       </div>
       <div className="card-body">
         <p className="card-name">{product.name}</p>
@@ -422,16 +539,34 @@ function ProductCard({ product }) {
   );
 }
 
-function ProductGrid({ products, total, loading, error, sort, setSort, onOpenMobileFilters }) {
+function ProductGrid({
+  products,
+  total,
+  loading,
+  error,
+  sort,
+  setSort,
+  onOpenMobileFilters,
+}) {
   return (
     <main className="main">
       <div className="main-scroll">
         <div className="sort-bar">
-          <button className="mobile-filter-btn" onClick={onOpenMobileFilters}>Filters</button>
-          <span className="results-count">Showing {products.length} of {total} styles</span>
-          <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <button className="mobile-filter-btn" onClick={onOpenMobileFilters}>
+            Filters
+          </button>
+          <span className="results-count">
+            Showing {products.length} of {total} styles
+          </span>
+          <select
+            className="sort-select"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
             {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -439,13 +574,22 @@ function ProductGrid({ products, total, loading, error, sort, setSort, onOpenMob
         {error && <p className="error-text">{error}</p>}
 
         {!loading && products.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px", color: "#666", fontSize: "16px" }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px",
+              color: "#666",
+              fontSize: "16px",
+            }}
+          >
             No products found matching this price range.
           </div>
         )}
 
         <div className="grid">
-          {products.map((p) => <ProductCard key={p.id} product={p} />)}
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
         </div>
 
         {loading && <p className="loading-text">Loading styles from server…</p>}
@@ -457,9 +601,18 @@ function ProductGrid({ products, total, loading, error, sort, setSort, onOpenMob
 export default function ShopPage() {
   const {
     filterGroups,
-    filters, sort, setSort, products, total, loading, error,
-    maxPrice, setMaxPrice,
-    toggleCheckbox, setRadio, clearAll,
+    filters,
+    sort,
+    setSort,
+    products,
+    total,
+    loading,
+    error,
+    maxPrice,
+    setMaxPrice,
+    toggleCheckbox,
+    setRadio,
+    clearAll,
   } = useShopData();
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
